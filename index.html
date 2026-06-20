@@ -925,7 +925,7 @@ async function renderConfig() {
   html += `<div class="section-header">Food Types</div><div class="card">`;
   config.foods.forEach((f, i) => {
     html += `<div class="config-item"><span>${f.icon}</span><div class="info"><div class="name">${f.name}</div><div class="desc">${f.desc}</div></div>
-      ${f.isBuiltIn ? '<span class="meta">Built-in</span>' : `<button onclick="deleteFood(${i})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button>`}</div>`;
+      <button onclick="deleteFood(${i})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
   });
   html += `<button class="add-btn" onclick="showAddFood()">＋ Add Food Type</button></div>`;
 
