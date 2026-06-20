@@ -919,7 +919,8 @@ async function renderInsights() {
 
 // ========== CONFIG TAB ==========
 async function renderConfig() {
-  let html = `<h1>Configuration</h1>`;
+  const APP_VERSION = '1.1';
+  let html = `<h1>Configuration</h1><div style="text-align:center;font-size:15px;font-weight:500;color:var(--text2);margin:-8px 0 12px;">v${APP_VERSION}</div>`;
 
   // Food types
   html += `<div class="section-header">Food Types</div><div class="card">`;
