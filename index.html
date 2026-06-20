@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Skin Tracker">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Skin Tracker</title>
+<style>
+:root {
+  --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30;
+  --indigo: #5856d6; --purple: #af52de; --gray: #8e8e93; --gray2: #aeaeb2;
+  --gray4: #d1d1d6; --gray5: #e5e5ea; --gray6: #f2f2f7;
+  --bg: #f2f2f7; --card: #fff; --text: #000; --text2: #3c3c43cc;
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Helvetica Neue',sans-serif; background:var(--bg); color:var(--text); overflow:hidden; height:100vh; height:100dvh; }
+.app { display:flex; flex-direction:column; height:100vh; height:100dvh; }
+.tab-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 16px 100px 16px; padding-top: calc(var(--safe-top) + 8px); }
+.tab-bar { display:flex; position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:0.5px solid var(--gray4); padding-bottom:var(--safe-bottom); z-index:100; }
+.tab-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:6px 0 4px; border:none; background:none; color:var(--gray); font-size:10px; cursor:pointer; }
+.tab-btn.active { color:var(--blue); }
+.tab-btn svg { width:24px; height:24px; margin-bottom:2px; }
+.tab-page { display:none; }
+.tab-page.active { display:block; }
+
+h1 { font-size:28px; font-weight:700; margin:8px 0 16px; }
+h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
+.section-header { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
+
+.card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
+.row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
+.row + .row { border-top:0.5px solid var(--gray5); }
+.row-label { display:flex; align-items:center; gap:8px; font-size:15px; }
+.row-label small { font-size:12px; color:var(--text2); }
+
+/* Toggle */
+.toggle { position:relative; width:51px; height:31px; border-radius:16px; background:var(--gray5); cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+.toggle.on { background:var(--orange); }
+.toggle::after { content:''; position:absolute; width:27px; height:27px; border-radius:50%; background:#fff; top:2px; left:2px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+.toggle.on::after { transform:translateX(20px); }
+
+/* Segmented control */
+.seg { display:flex; background:var(--gray5); border-radius:8px; padding:2px; gap:1px; }
+.seg-btn { flex:1; padding:6px 4px; border:none; border-radius:7px; background:none; font-size:12px; font-weight:500; cursor:pointer; color:var(--text2); white-space:nowrap; }
+.seg-btn.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+.seg-btn.active-orange { background:var(--orange); color:#fff; }
+.seg-btn.active-red { background:var(--red); color:#fff; }
+
+/* Stepper */
+.stepper { display:flex; align-items:center; gap:0; background:var(--gray5); border-radius:8px; overflow:hidden; }
+.stepper button { width:32px; height:32px; border:none; background:none; font-size:18px; font-weight:500; color:var(--blue); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.stepper button:active { background:var(--gray4); }
+.stepper span { min-width:28px; text-align:center; font-size:15px; font-weight:600; border-left:0.5px solid var(--gray4); border-right:0.5px solid var(--gray4); padding:4px 0; }
+
+/* Quick actions */
+.quick-actions { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
+.quick-btn { padding:8px 14px; border-radius:20px; border:1px solid var(--blue); background:none; color:var(--blue); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; }
+.quick-btn:active { background:var(--blue); color:#fff; }
+
+/* Banner */
+.banner { padding:12px 16px; border-radius:12px; font-size:14px; font-weight:600; margin-bottom:12px; }
+.banner-green { background:rgba(52,199,89,0.15); color:var(--green); }
+.banner-orange { background:rgba(255,149,0,0.15); color:var(--orange); }
+
+/* Side badge */
+.side-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
+.side-badge.L { background:var(--blue); }
+.side-badge.R { background:var(--purple); }
+.side-badge.C { background:var(--gray); }
+
+/* Expandable group */
+.group-header { display:flex; align-items:center; padding:12px 0; cursor:pointer; user-select:none; }
+.group-header .icon { font-size:20px; margin-right:8px; }
+.group-header .name { font-size:16px; font-weight:500; flex:1; }
+.group-header .dots { display:flex; gap:3px; margin-right:6px; }
+.group-header .dot { width:8px; height:8px; border-radius:50%; }
+.group-header .chevron { color:var(--gray2); font-size:14px; transition:transform 0.2s; }
+.group-header .chevron.open { transform:rotate(90deg); }
+.group-parts { display:none; padding-left:4px; }
+.group-parts.open { display:block; }
+.body-part { padding:10px 0; }
+.body-part + .body-part { border-top:0.5px solid var(--gray5); }
+.bp-header { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.bp-header .name { font-size:15px; font-weight:500; flex:1; }
+.bp-header .default-tag { font-size:12px; color:var(--green); font-weight:500; }
+.bp-row { display:flex; align-items:center; margin:6px 0; }
+.bp-row-label { font-size:12px; color:var(--text2); width:60px; flex-shrink:0; }
+
+/* Filter chips */
+.chips { display:flex; gap:6px; overflow-x:auto; padding:4px 0; -webkit-overflow-scrolling:touch; }
+.chips::-webkit-scrollbar { display:none; }
+.chip { padding:7px 12px; border-radius:20px; border:1px solid var(--gray4); background:var(--gray6); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.chip.active-orange { background:var(--orange); color:#fff; border-color:var(--orange); }
+.chip.active-indigo { background:var(--indigo); color:#fff; border-color:var(--indigo); }
+
+/* Calendar */
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+.cal-header { font-size:12px; font-weight:600; color:var(--text2); padding:4px; }
+.cal-day { font-size:14px; padding:8px 4px; border-radius:10px; position:relative; cursor:pointer; }
+.cal-day.today { background:var(--blue); color:#fff; font-weight:700; }
+.cal-dot { width:6px; height:6px; border-radius:50%; margin:2px auto 0; }
+
+/* History card */
+.hist-card { background:var(--card); border-radius:14px; padding:14px; margin-bottom:10px; }
+.hist-date { font-size:14px; font-weight:600; margin-bottom:6px; }
+.hist-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+.hist-tag { font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; }
+.hist-tag.food { background:rgba(255,149,0,0.15); color:var(--orange); }
+.hist-tag.med { background:rgba(88,86,214,0.15); color:var(--indigo); }
+.hist-tag.clear { background:rgba(52,199,89,0.15); color:var(--green); }
+.hist-bp { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:14px; }
+.severity-tag { font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; }
+.severity-mild { background:rgba(255,149,0,0.12); color:var(--orange); }
+.severity-severe { background:rgba(255,59,48,0.12); color:var(--red); }
+
+/* Insights */
+.insight-card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
+.insight-title { font-size:16px; font-weight:600; margin-bottom:10px; }
+.insight-pickers { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.insight-pickers select { padding:8px 12px; border-radius:10px; border:1px solid var(--blue); background:#fff; color:var(--blue); font-size:14px; font-weight:500; }
+.insight-finding { padding:12px; background:rgba(0,122,255,0.06); border-radius:10px; }
+.insight-finding .big { font-size:22px; font-weight:700; color:var(--red); }
+.insight-finding .detail { font-size:13px; color:var(--text2); margin-top:4px; }
+.corr-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:0.5px solid var(--gray5); font-size:14px; }
+.corr-val { font-weight:600; }
+
+/* Config */
+.config-item { display:flex; align-items:center; padding:10px 0; gap:10px; }
+.config-item + .config-item { border-top:0.5px solid var(--gray5); }
+.config-item .info { flex:1; }
+.config-item .info .name { font-size:15px; font-weight:500; }
+.config-item .info .desc { font-size:12px; color:var(--text2); }
+.config-item .badges { display:flex; gap:4px; }
+.config-item .meta { font-size:12px; color:var(--text2); }
+.add-btn { display:flex; align-items:center; gap:6px; padding:10px 0; color:var(--blue); font-size:15px; font-weight:500; cursor:pointer; border:none; background:none; width:100%; }
+.delete-btn { color:var(--red); }
+
+/* Modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:flex-end; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--bg); border-radius:14px 14px 0 0; width:100%; max-height:80vh; overflow-y:auto; padding:20px 16px calc(20px + var(--safe-bottom)); }
+.modal h3 { font-size:18px; font-weight:600; margin-bottom:16px; text-align:center; }
+.modal-actions { display:flex; justify-content:space-between; margin-bottom:16px; }
+.modal-actions button { padding:8px 20px; border-radius:10px; border:none; font-size:15px; font-weight:500; cursor:pointer; }
+.modal-cancel { background:var(--gray5); color:var(--text); }
+.modal-save { background:var(--blue); color:#fff; }
+.modal-save:disabled { opacity:0.4; }
+.form-field { margin-bottom:14px; }
+.form-field label { font-size:13px; color:var(--text2); display:block; margin-bottom:4px; }
+.form-field input, .form-field select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--gray4); font-size:15px; background:#fff; }
+
+/* Date nav */
+.date-nav { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
+.date-nav button { width:32px; height:32px; border-radius:50%; border:none; background:var(--gray5); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--blue); }
+.date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; }
+.date-nav input[type=date] { position:absolute; opacity:0; width:0; height:0; }
+
+/* Copy L->R bottom btn */
+.copy-lr-bottom { display:block; width:100%; padding:12px; border-radius:12px; border:1px solid var(--blue); background:none; color:var(--blue); font-size:15px; font-weight:500; cursor:pointer; text-align:center; margin:12px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TAB PAGES -->
+<div id="page-today" class="tab-content tab-page active"></div>
+<div id="page-history" class="tab-content tab-page"></div>
+<div id="page-insights" class="tab-content tab-page"></div>
+<div id="page-config" class="tab-content tab-page"></div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Today
+  </button>
+  <button class="tab-btn" data-tab="history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    History
+  </button>
+  <button class="tab-btn" data-tab="insights">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Insights
+  </button>
+  <button class="tab-btn" data-tab="config">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Config
+  </button>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+</div>
+
+<script>
+// ========== DATABASE ==========
+const DB_NAME = 'SkinTrackerDB';
+const DB_VERSION = 1;
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('entries')) d.createObjectStore('entries', { keyPath: 'dateString' });
+      if (!d.objectStoreNames.contains('config')) d.createObjectStore('config', { keyPath: 'key' });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e);
+  });
+}
+
+function dbPut(store, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(data);
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e);
+  });
+}
+
+// ========== DEFAULT CONFIG ==========
+const DEFAULT_FOODS = [
+  { name:'Gluten', desc:'bread, pasta, wheat', icon:'🌾', sortOrder:0, isBuiltIn:true },
+  { name:'Dairy / Milk', desc:'milk, cheese, yogurt', icon:'🥛', sortOrder:1, isBuiltIn:true },
+  { name:'Peanut', desc:'peanut butter, snacks', icon:'🥜', sortOrder:2, isBuiltIn:true },
+  { name:'Eggs', desc:'eggs, baked goods', icon:'🥚', sortOrder:3, isBuiltIn:true },
+  { name:'Soy', desc:'soy sauce, tofu', icon:'🫘', sortOrder:4, isBuiltIn:true }
+];
+
+const DEFAULT_BODY_PARTS = [
+  { name:'Back of Hand', sides:['L','R'], group:'Hand & Arm', sortOrder:0 },
+  { name:'Lower Arm', sides:['L','R'], group:'Hand & Arm', sortOrder:1 },
+  { name:'Upper Arm', sides:['L','R'], group:'Hand & Arm', sortOrder:2 },
+  { name:'Armpit', sides:['L','R'], group:'Armpit & Torso', sortOrder:3 },
+  { name:'Back of Armpit', sides:['L','R'], group:'Armpit & Torso', sortOrder:4 },
+  { name:'Hip', sides:['L','R'], group:'Armpit & Torso', sortOrder:5 },
+  { name:'Belly', sides:['C'], group:'Belly & Back', sortOrder:6 },
+  { name:'Back', sides:['C'], group:'Belly & Back', sortOrder:7 },
+  { name:'Thigh (Inside)', sides:['L','R'], group:'Leg & Foot', sortOrder:8 },
+  { name:'Thigh (Outside)', sides:['L','R'], group:'Leg & Foot', sortOrder:9 },
+  { name:'Leg (Inside)', sides:['L','R'], group:'Leg & Foot', sortOrder:10 },
+  { name:'Leg (Outside)', sides:['L','R'], group:'Leg & Foot', sortOrder:11 },
+  { name:'Foot', sides:['L','R'], group:'Leg & Foot', sortOrder:12 }
+];
+
+const DEFAULT_MEDICATIONS = [
+  { name:'Betaderm', desc:'corticosteroid cream', icon:'🧴', medType:'topical', inputType:'counter', maxDose:2, sortOrder:0 },
+  { name:'Elidel', desc:'calcineurin inhibitor', icon:'🧴', medType:'topical', inputType:'counter', maxDose:2, sortOrder:1 },
+  { name:'Reactine', desc:'antihistamine', icon:'💊', medType:'systemic', inputType:'counter', maxDose:3, sortOrder:2 },
+  { name:'Dupixent', desc:'biologic injection', icon:'💉', medType:'systemic', inputType:'toggle', maxDose:1, sortOrder:3 },
+  { name:'Prednisone', desc:'corticosteroid', icon:'💊', medType:'systemic', inputType:'counter', maxDose:5, sortOrder:4 }
+];
+
+const GROUP_ICONS = { 'Hand & Arm':'👋', 'Armpit & Torso':'🧍', 'Belly & Back':'🫃', 'Leg & Foot':'🦵' };
+
+// ========== STATE ==========
+let config = { foods:[], bodyParts:[], medications:[] };
+let currentDate = dateKey(new Date());
+let currentEntry = null;
+let expandedGroups = {};
+
+function dateKey(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function formatDateLong(s) {
+  return parseDate(s).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+
+// ========== CONFIG MANAGEMENT ==========
+async function loadConfig() {
+  let c = await dbGet('config', 'appConfig');
+  if (!c) {
+    c = { key:'appConfig', foods:DEFAULT_FOODS, bodyParts:DEFAULT_BODY_PARTS, medications:DEFAULT_MEDICATIONS };
+    await dbPut('config', c);
+  }
+  config = c;
+}
+
+async function saveConfig() {
+  config.key = 'appConfig';
+  await dbPut('config', config);
+}
+
+// ========== ENTRY MANAGEMENT ==========
+function emptyEntry(dateStr) {
+  const food = {};
+  config.foods.forEach(f => food[f.name] = false);
+  const sysMeds = {};
+  config.medications.filter(m => m.medType === 'systemic').forEach(m => sysMeds[m.name] = 0);
+  const bpEntries = [];
+  config.bodyParts.forEach(bp => {
+    bp.sides.forEach(side => {
+      const topMeds = {};
+      config.medications.filter(m => m.medType === 'topical').forEach(m => topMeds[m.name] = 0);
+      bpEntries.push({ bodyPartName:bp.name, side, itchiness:'No', moisturizerCount:0, topicalMeds:topMeds });
+    });
+  });
+  return { dateString:dateStr, foodConsumed:food, systemicMeds:sysMeds, fullBodyMoisturizer:0, bodyPartEntries:bpEntries };
+}
+
+async function loadEntry(dateStr) {
+  let entry = await dbGet('entries', dateStr);
+  if (!entry) {
+    entry = emptyEntry(dateStr);
+  } else {
+    config.foods.forEach(f => { if (!(f.name in entry.foodConsumed)) entry.foodConsumed[f.name] = false; });
+    config.medications.filter(m => m.medType === 'systemic').forEach(m => { if (!(m.name in entry.systemicMeds)) entry.systemicMeds[m.name] = 0; });
+    const topMedNames = config.medications.filter(m => m.medType === 'topical').map(m => m.name);
+    config.bodyParts.forEach(bp => {
+      bp.sides.forEach(side => {
+        let existing = entry.bodyPartEntries.find(e => e.bodyPartName === bp.name && e.side === side);
+        if (!existing) {
+          const topMeds = {};
+          topMedNames.forEach(n => topMeds[n] = 0);
+          entry.bodyPartEntries.push({ bodyPartName:bp.name, side, itchiness:'No', moisturizerCount:0, topicalMeds:topMeds });
+        } else {
+          topMedNames.forEach(n => { if (!(n in existing.topicalMeds)) existing.topicalMeds[n] = 0; });
+        }
+      });
+    });
+  }
+  currentEntry = entry;
+  return entry;
+}
+
+async function saveEntry() {
+  if (currentEntry) await dbPut('entries', currentEntry);
+}
+
+// ========== TAB NAVIGATION ==========
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'today') renderToday();
+    if (btn.dataset.tab === 'history') renderHistory();
+    if (btn.dataset.tab === 'insights') renderInsights();
+    if (btn.dataset.tab === 'config') renderConfig();
+  });
+});
+
+// ========== TODAY TAB ==========
+async function renderToday() {
+  await loadEntry(currentDate);
+  const entry = currentEntry;
+  const topicalMeds = config.medications.filter(m => m.medType === 'topical');
+  const systemicMeds = config.medications.filter(m => m.medType === 'systemic');
+
+  const itchySummary = getItchySummary(entry);
+  const bannerClass = itchySummary.total === 0 ? 'banner-green' : 'banner-orange';
+  const bannerText = itchySummary.total === 0 ? 'All clear today!' :
+    `${itchySummary.total} area${itchySummary.total>1?'s':''} with itchiness` +
+    (itchySummary.mild > 0 ? ` · ${itchySummary.mild} mild` : '') +
+    (itchySummary.severe > 0 ? ` · ${itchySummary.severe} severe` : '');
+
+  // Group body parts by side category
+  const leftParts = [], centerParts = [], rightParts = [];
+  config.bodyParts.forEach(bp => {
+    if (bp.sides.includes('L')) leftParts.push({ ...bp, side:'L' });
+    if (bp.sides.includes('C')) centerParts.push({ ...bp, side:'C' });
+    if (bp.sides.includes('R')) rightParts.push({ ...bp, side:'R' });
+  });
+
+  const groups = {};
+  config.bodyParts.forEach(bp => {
+    if (!groups[bp.group]) groups[bp.group] = { left:[], center:[], right:[] };
+    if (bp.sides.includes('L')) groups[bp.group].left.push(bp);
+    if (bp.sides.includes('C')) groups[bp.group].center.push(bp);
+    if (bp.sides.includes('R')) groups[bp.group].right.push(bp);
+  });
+
+  let html = `<h1>Today</h1>`;
+
+  // Date nav
+  html += `<div class="date-nav">
+    <button onclick="changeDate(-1)">&lsaquo;</button>
+    <span class="date-text" id="date-display">${formatDateLong(currentDate)}</span>
+    <button onclick="changeDate(1)">&rsaquo;</button>
+    <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
+  </div>`;
+
+  // Food section
+  html += `<div class="section-header">Food Consumed Today</div><div class="card">`;
+  config.foods.forEach(f => {
+    const on = entry.foodConsumed[f.name] ? 'on' : '';
+    html += `<div class="row"><div class="row-label">${f.icon} ${f.name}<small>${f.desc}</small></div>
+      <div class="toggle ${on}" onclick="toggleFood('${esc(f.name)}')"></div></div>`;
+  });
+  html += `</div>`;
+
+  // Systemic meds
+  if (systemicMeds.length > 0) {
+    html += `<div class="section-header">Systemic Medications</div><div class="card">`;
+    systemicMeds.forEach(m => {
+      const val = entry.systemicMeds[m.name] || 0;
+      if (m.inputType === 'toggle') {
+        const on = val > 0 ? 'on' : '';
+        html += `<div class="row"><div class="row-label">${m.icon} ${m.name}<small>${m.desc}</small></div>
+          <div class="toggle ${on}" onclick="toggleSysMed('${esc(m.name)}')"></div></div>`;
+      } else {
+        html += `<div class="row"><div class="row-label">${m.icon} ${m.name}<small>${m.desc}</small></div>
+          <div class="stepper"><button onclick="stepSysMed('${esc(m.name)}',-1)">−</button><span>${val}</span><button onclick="stepSysMed('${esc(m.name)}',1)">+</button></div></div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  // Full body moisturizer
+  html += `<div class="section-header">Full-Body Moisturizer</div><div class="card">
+    <div class="row"><span>Times applied today</span>
+    <div class="stepper"><button onclick="stepMoist(-1)">−</button><span>${entry.fullBodyMoisturizer}</span><button onclick="stepMoist(1)">+</button></div></div></div>`;
+
+  // Quick actions
+  html += `<div class="quick-actions">
+    <button class="quick-btn" onclick="allClear()">✅ All Clear</button>
+    <button class="quick-btn" onclick="copyLR()">→ Copy L→R</button>
+    <button class="quick-btn" onclick="copyYesterday()">📋 Yesterday</button>
+  </div>`;
+
+  // Banner
+  html += `<div class="banner ${bannerClass}">${bannerText}</div>`;
+
+  // Body parts by side
+  function renderSideGroups(label, sideKey) {
+    const relevantGroups = {};
+    config.bodyParts.forEach(bp => {
+      if (bp.sides.includes(sideKey)) {
+        if (!relevantGroups[bp.group]) relevantGroups[bp.group] = [];
+        relevantGroups[bp.group].push(bp);
+      }
+    });
+    if (Object.keys(relevantGroups).length === 0) return '';
+    let s = `<div class="section-header">${label}</div>`;
+    for (const [groupName, parts] of Object.entries(relevantGroups)) {
+      const gKey = sideKey + '_' + groupName;
+      const isOpen = expandedGroups[gKey];
+      const dots = parts.map(p => {
+        const bpe = entry.bodyPartEntries.find(e => e.bodyPartName === p.name && e.side === sideKey);
+        const itch = bpe ? bpe.itchiness : 'No';
+        const color = itch === 'Severe' ? 'var(--red)' : itch === 'Mild' ? 'var(--orange)' : 'var(--green)';
+        return `<div class="dot" style="background:${color}"></div>`;
+      }).join('');
+
+      s += `<div class="card" style="padding:0 16px;margin-bottom:8px;">
+        <div class="group-header" onclick="toggleGroup('${esc(gKey)}')">
+          <span class="icon">${GROUP_ICONS[groupName]||'🦴'}</span>
+          <span class="name">${groupName}</span>
+          <div class="dots">${dots}</div>
+          <span class="chevron ${isOpen?'open':''}">&#9654;</span>
+        </div>
+        <div class="group-parts ${isOpen?'open':''}">`;
+
+      parts.forEach(p => {
+        const bpe = entry.bodyPartEntries.find(e => e.bodyPartName === p.name && e.side === sideKey);
+        if (!bpe) return;
+        const isDefault = bpe.itchiness === 'No' && bpe.moisturizerCount === 0 && Object.values(bpe.topicalMeds).every(v => v === 0);
+        s += `<div class="body-part">
+          <div class="bp-header">
+            <span class="side-badge ${sideKey}">${sideKey}</span>
+            <span class="name">${p.name}</span>
+            ${isDefault ? '<span class="default-tag">default</span>' : ''}
+          </div>
+          <div class="bp-row"><span class="bp-row-label">Itchiness</span><div class="seg">
+            ${['No','Mild','Severe'].map(v => {
+              const cls = bpe.itchiness === v ? (v === 'Severe' ? 'active-red' : v === 'Mild' ? 'active-orange' : 'active') : '';
+              return `<button class="seg-btn ${cls}" onclick="setItch('${esc(p.name)}','${sideKey}','${v}')">${v}</button>`;
+            }).join('')}
+          </div></div>
+          <div class="bp-row"><span class="bp-row-label">Moisturizer</span><div class="seg">
+            ${[0,1,2,'3+'].map((v,i) => {
+              const val = v === '3+' ? 3 : v;
+              const cls = bpe.moisturizerCount === val ? 'active' : '';
+              return `<button class="seg-btn ${cls}" onclick="setMoist('${esc(p.name)}','${sideKey}',${val})">${v}</button>`;
+            }).join('')}
+          </div></div>`;
+
+        if (topicalMeds.length > 0) {
+          const options = ['None'];
+          topicalMeds.forEach(m => {
+            for (let d = 1; d <= m.maxDose; d++) options.push(`${m.name.substring(0,4)}×${d}`);
+          });
+          const currentVal = getCurrentTopicalLabel(bpe, topicalMeds);
+          s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="seg" style="flex-wrap:wrap;">
+            ${options.map(o => {
+              const cls = currentVal === o ? 'active' : '';
+              return `<button class="seg-btn ${cls}" onclick="setTopical('${esc(p.name)}','${sideKey}','${esc(o)}')" style="flex:0 0 auto;padding:6px 8px;">${o}</button>`;
+            }).join('')}
+          </div></div>`;
+        }
+        s += `</div>`;
+      });
+      s += `</div></div>`;
+    }
+    return s;
+  }
+
+  html += renderSideGroups('Left Side', 'L');
+  html += renderSideGroups('Center', 'C');
+  html += renderSideGroups('Right Side', 'R');
+
+  html += `<button class="copy-lr-bottom" onclick="copyLR()">↻ Copy Left Side → Right Side</button>`;
+
+  document.getElementById('page-today').innerHTML = html;
+}
+
+function esc(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function getCurrentTopicalLabel(bpe, topicalMeds) {
+  for (const m of topicalMeds) {
+    const val = bpe.topicalMeds[m.name] || 0;
+    if (val > 0) return `${m.name.substring(0,4)}×${val}`;
+  }
+  return 'None';
+}
+
+function getItchySummary(entry) {
+  let mild = 0, severe = 0;
+  entry.bodyPartEntries.forEach(bp => {
+    if (bp.itchiness === 'Mild') mild++;
+    if (bp.itchiness === 'Severe') severe++;
+  });
+  return { mild, severe, total: mild + severe };
+}
+
+function changeDate(delta) {
+  const d = parseDate(currentDate);
+  d.setDate(d.getDate() + delta);
+  currentDate = dateKey(d);
+  renderToday();
+}
+
+function pickDate(val) {
+  if (val) { currentDate = val; renderToday(); }
+}
+
+async function toggleFood(name) {
+  currentEntry.foodConsumed[name] = !currentEntry.foodConsumed[name];
+  await saveEntry();
+  renderToday();
+}
+
+async function toggleSysMed(name) {
+  currentEntry.systemicMeds[name] = currentEntry.systemicMeds[name] > 0 ? 0 : 1;
+  await saveEntry();
+  renderToday();
+}
+
+async function stepSysMed(name, delta) {
+  const med = config.medications.find(m => m.name === name);
+  const max = med ? med.maxDose : 10;
+  currentEntry.systemicMeds[name] = Math.max(0, Math.min(max, (currentEntry.systemicMeds[name]||0) + delta));
+  await saveEntry();
+  renderToday();
+}
+
+async function stepMoist(delta) {
+  currentEntry.fullBodyMoisturizer = Math.max(0, currentEntry.fullBodyMoisturizer + delta);
+  await saveEntry();
+  renderToday();
+}
+
+function toggleGroup(key) {
+  expandedGroups[key] = !expandedGroups[key];
+  renderToday();
+}
+
+async function setItch(name, side, val) {
+  const bpe = currentEntry.bodyPartEntries.find(e => e.bodyPartName === name && e.side === side);
+  if (bpe) { bpe.itchiness = val; await saveEntry(); renderToday(); }
+}
+
+async function setMoist(name, side, val) {
+  const bpe = currentEntry.bodyPartEntries.find(e => e.bodyPartName === name && e.side === side);
+  if (bpe) { bpe.moisturizerCount = val; await saveEntry(); renderToday(); }
+}
+
+async function setTopical(bpName, side, label) {
+  const bpe = currentEntry.bodyPartEntries.find(e => e.bodyPartName === bpName && e.side === side);
+  if (!bpe) return;
+  const topicalMeds = config.medications.filter(m => m.medType === 'topical');
+  topicalMeds.forEach(m => bpe.topicalMeds[m.name] = 0);
+  if (label !== 'None') {
+    const prefix = label.split('×')[0];
+    const dose = parseInt(label.split('×')[1]) || 1;
+    const med = topicalMeds.find(m => m.name.substring(0,4) === prefix);
+    if (med) bpe.topicalMeds[med.name] = dose;
+  }
+  await saveEntry();
+  renderToday();
+}
+
+async function allClear() {
+  currentEntry.bodyPartEntries.forEach(bp => {
+    bp.itchiness = 'No'; bp.moisturizerCount = 0;
+    Object.keys(bp.topicalMeds).forEach(k => bp.topicalMeds[k] = 0);
+  });
+  await saveEntry();
+  renderToday();
+}
+
+async function copyLR() {
+  currentEntry.bodyPartEntries.forEach(lbp => {
+    if (lbp.side !== 'L') return;
+    const rbp = currentEntry.bodyPartEntries.find(e => e.bodyPartName === lbp.bodyPartName && e.side === 'R');
+    if (rbp) {
+      rbp.itchiness = lbp.itchiness;
+      rbp.moisturizerCount = lbp.moisturizerCount;
+      rbp.topicalMeds = { ...lbp.topicalMeds };
+    }
+  });
+  await saveEntry();
+  renderToday();
+}
+
+async function copyYesterday() {
+  const yd = parseDate(currentDate);
+  yd.setDate(yd.getDate() - 1);
+  const yEntry = await dbGet('entries', dateKey(yd));
+  if (!yEntry) { alert('No entry found for yesterday.'); return; }
+  currentEntry.foodConsumed = { ...yEntry.foodConsumed };
+  currentEntry.systemicMeds = { ...yEntry.systemicMeds };
+  currentEntry.fullBodyMoisturizer = yEntry.fullBodyMoisturizer;
+  currentEntry.bodyPartEntries = yEntry.bodyPartEntries.map(bp => ({
+    ...bp, topicalMeds: { ...bp.topicalMeds }
+  }));
+  currentEntry.dateString = currentDate;
+  await saveEntry();
+  renderToday();
+}
+
+// ========== HISTORY TAB ==========
+let historyMonth = new Date();
+let selectedFoodFilters = new Set();
+let selectedMedFilters = new Set();
+
+async function renderHistory() {
+  const allEntries = await dbGetAll('entries');
+  allEntries.sort((a,b) => b.dateString.localeCompare(a.dateString));
+
+  let html = `<h1>History</h1>`;
+
+  // Filter chips
+  html += `<div class="chips">`;
+  config.foods.forEach(f => {
+    const cls = selectedFoodFilters.has(f.name) ? 'active-orange' : '';
+    html += `<div class="chip ${cls}" onclick="toggleFoodFilter('${esc(f.name)}')">${f.icon} ${f.name}</div>`;
+  });
+  config.medications.forEach(m => {
+    const cls = selectedMedFilters.has(m.name) ? 'active-indigo' : '';
+    html += `<div class="chip ${cls}" onclick="toggleMedFilter('${esc(m.name)}')">${m.icon} ${m.name}</div>`;
+  });
+  html += `</div>`;
+
+  // Calendar
+  const cal = historyMonth;
+  const year = cal.getFullYear(), month = cal.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthName = cal.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  const todayKey = dateKey(new Date());
+
+  html += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <button onclick="changeHistMonth(-1)" style="border:none;background:none;color:var(--blue);font-size:18px;cursor:pointer;">&#8249;</button>
+    <span style="font-weight:600;">${monthName}</span>
+    <button onclick="changeHistMonth(1)" style="border:none;background:none;color:var(--blue);font-size:18px;cursor:pointer;">&#8250;</button>
+  </div><div class="cal-grid">`;
+  ['S','M','T','W','T','F','S'].forEach(d => html += `<div class="cal-header">${d}</div>`);
+  for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry = allEntries.find(e => e.dateString === key);
+    const isToday = key === todayKey ? 'today' : '';
+    let dot = '';
+    if (entry) {
+      const s = getItchySummary(entry);
+      const color = s.severe > 0 ? 'var(--orange)' : 'var(--green)';
+      dot = `<div class="cal-dot" style="background:${color}"></div>`;
+    }
+    html += `<div class="cal-day ${isToday}">${d}${dot}</div>`;
+  }
+  html += `</div></div>`;
+
+  // Filtered entries
+  let filtered = allEntries;
+  if (selectedFoodFilters.size > 0) {
+    filtered = filtered.filter(e => {
+      const eaten = Object.entries(e.foodConsumed).filter(([_,v]) => v).map(([k]) => k);
+      return [...selectedFoodFilters].every(f => eaten.includes(f));
+    });
+  }
+  if (selectedMedFilters.size > 0) {
+    filtered = filtered.filter(e => {
+      const usedSys = Object.entries(e.systemicMeds).filter(([_,v]) => v > 0).map(([k]) => k);
+      const usedTop = [...new Set(e.bodyPartEntries.flatMap(bp => Object.entries(bp.topicalMeds).filter(([_,v]) => v > 0).map(([k]) => k)))];
+      const allUsed = new Set([...usedSys, ...usedTop]);
+      return [...selectedMedFilters].every(m => allUsed.has(m));
+    });
+  }
+
+  if (selectedFoodFilters.size > 0 || selectedMedFilters.size > 0) {
+    const labels = [...selectedFoodFilters, ...selectedMedFilters].join(' + ');
+    html += `<div style="font-size:13px;font-weight:600;color:var(--blue);padding:10px 12px;background:rgba(0,122,255,0.08);border-radius:10px;margin-bottom:8px;">Showing: ${labels}</div>`;
+  }
+
+  filtered.forEach(entry => {
+    html += `<div class="hist-card"><div class="hist-date">${formatDateLong(entry.dateString)}</div><div class="hist-tags">`;
+    const consumed = Object.entries(entry.foodConsumed).filter(([_,v]) => v).map(([k]) => k);
+    consumed.forEach(name => {
+      const food = config.foods.find(f => f.name === name);
+      html += `<span class="hist-tag food">${food?food.icon:'🍽️'} ${name}</span>`;
+    });
+    Object.entries(entry.systemicMeds).filter(([_,v]) => v > 0).forEach(([name,dose]) => {
+      html += `<span class="hist-tag med">💊 ${name} ×${dose}</span>`;
+    });
+    html += `</div>`;
+    const affected = entry.bodyPartEntries.filter(bp => bp.itchiness !== 'No');
+    if (affected.length === 0) {
+      html += `<div class="hist-bp"><span>All areas</span><span class="hist-tag clear">Clear</span></div>`;
+    } else {
+      affected.sort((a,b) => (a.side+a.bodyPartName).localeCompare(b.side+b.bodyPartName));
+      affected.forEach(bp => {
+        const sevClass = bp.itchiness === 'Severe' ? 'severity-severe' : 'severity-mild';
+        const topMedText = Object.entries(bp.topicalMeds).filter(([_,v]) => v > 0).map(([k,v]) => `${k.substring(0,4)}×${v}`).join(' ');
+        const label = [bp.itchiness, topMedText].filter(Boolean).join(' · ');
+        html += `<div class="hist-bp"><span>${bp.side}. ${bp.bodyPartName}</span><span class="severity-tag ${sevClass}">${label}</span></div>`;
+      });
+    }
+    if (entry.fullBodyMoisturizer > 0) {
+      html += `<div class="hist-bp"><span>Full-body moisturizer</span><span class="severity-tag" style="background:rgba(52,199,89,0.12);color:var(--green);">×${entry.fullBodyMoisturizer}</span></div>`;
+    }
+    html += `</div>`;
+  });
+
+  if (filtered.length === 0) {
+    html += `<div style="text-align:center;color:var(--text2);padding:20px;">No entries match the selected filters.</div>`;
+  }
+
+  document.getElementById('page-history').innerHTML = html;
+}
+
+function changeHistMonth(delta) {
+  historyMonth.setMonth(historyMonth.getMonth() + delta);
+  renderHistory();
+}
+
+function toggleFoodFilter(name) {
+  if (selectedFoodFilters.has(name)) selectedFoodFilters.delete(name); else selectedFoodFilters.add(name);
+  renderHistory();
+}
+
+function toggleMedFilter(name) {
+  if (selectedMedFilters.has(name)) selectedMedFilters.delete(name); else selectedMedFilters.add(name);
+  renderHistory();
+}
+
+// ========== INSIGHTS TAB ==========
+async function renderInsights() {
+  const allEntries = await dbGetAll('entries');
+  if (allEntries.length === 0) {
+    document.getElementById('page-insights').innerHTML = `<h1>Insights</h1><div class="card"><p style="color:var(--text2);">Start tracking to see insights. Add entries in the Today tab.</p></div>`;
+    return;
+  }
+
+  let html = `<h1>Insights</h1>`;
+
+  // Food correlation
+  html += `<div class="insight-card"><div class="insight-title">Does food affect my skin?</div>
+    <div class="insight-pickers">
+      <select id="insight-food" onchange="renderInsights()">`;
+  config.foods.forEach(f => html += `<option value="${f.name}">${f.name}</option>`);
+  html += `</select><span>→</span><select id="insight-area" onchange="renderInsights()"><option value="All areas">All areas</option>`;
+  config.bodyParts.forEach(bp => bp.sides.forEach(s => html += `<option value="${s}.${bp.name}">${s}. ${bp.name}</option>`));
+  html += `</select></div>`;
+
+  const selFood = document.getElementById('insight-food')?.value || config.foods[0]?.name;
+  const selArea = document.getElementById('insight-area')?.value || 'All areas';
+
+  const foodDays = allEntries.filter(e => e.foodConsumed[selFood]);
+  const noFoodDays = allEntries.filter(e => !e.foodConsumed[selFood]);
+
+  function hasItch(entry, area) {
+    if (area === 'All areas') return entry.bodyPartEntries.some(bp => bp.itchiness !== 'No');
+    const [side, name] = area.split('.');
+    const bp = entry.bodyPartEntries.find(e => e.side === side && e.bodyPartName === name);
+    return bp && bp.itchiness !== 'No';
+  }
+
+  const itchOnFood = foodDays.filter(e => hasItch(e, selArea)).length;
+  const itchNoFood = noFoodDays.filter(e => hasItch(e, selArea)).length;
+  const foodRate = foodDays.length > 0 ? Math.round(itchOnFood / foodDays.length * 100) : 0;
+  const noFoodRate = noFoodDays.length > 0 ? Math.round(itchNoFood / noFoodDays.length * 100) : 0;
+
+  html += `<div class="insight-finding"><div class="big">${foodRate}% itchy on ${selFood} days</div>
+    <div class="detail">vs. ${noFoodRate}% on ${selFood}-free days (${allEntries.length} days of data)</div></div></div>`;
+
+  // Medication correlation
+  html += `<div class="insight-card"><div class="insight-title">Does medication help?</div>
+    <div class="insight-pickers"><select id="insight-med" onchange="renderInsights()">`;
+  config.medications.forEach(m => html += `<option value="${m.name}">${m.name} (${m.medType})</option>`);
+  html += `</select></div>`;
+
+  const selMed = document.getElementById('insight-med')?.value || config.medications[0]?.name;
+  const med = config.medications.find(m => m.name === selMed);
+
+  let medDays, reliefDays = 0;
+  if (med && med.medType === 'systemic') {
+    medDays = allEntries.filter(e => (e.systemicMeds[selMed] || 0) > 0);
+  } else {
+    medDays = allEntries.filter(e => e.bodyPartEntries.some(bp => (bp.topicalMeds[selMed] || 0) > 0));
+  }
+  medDays.forEach(e => {
+    const nextDay = parseDate(e.dateString);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const next = allEntries.find(n => n.dateString === dateKey(nextDay));
+    if (next) {
+      const todayItch = getItchySummary(e).total;
+      const nextItch = getItchySummary(next).total;
+      if (nextItch < todayItch) reliefDays++;
+    }
+  });
+  const reliefRate = medDays.length > 0 ? Math.round(reliefDays / medDays.length * 100) : 0;
+
+  html += `<div class="insight-finding"><div class="big">${reliefRate}% relief rate</div>
+    <div class="detail">Itchiness reduced on ${reliefDays} of ${medDays.length} days when ${selMed} was used</div></div></div>`;
+
+  // All correlations
+  html += `<div class="insight-card"><div class="insight-title">All Correlations</div>`;
+  const corrs = [];
+  config.foods.forEach(f => {
+    const fd = allEntries.filter(e => e.foodConsumed[f.name]);
+    const nfd = allEntries.filter(e => !e.foodConsumed[f.name]);
+    if (fd.length > 0 && nfd.length > 0) {
+      const r1 = fd.filter(e => getItchySummary(e).total > 0).length / fd.length;
+      const r2 = nfd.filter(e => getItchySummary(e).total > 0).length / nfd.length;
+      const diff = Math.round((r1 - r2) * 100);
+      corrs.push({ name: f.icon + ' ' + f.name, diff, label: diff > 0 ? `+${diff}%` : `${diff}%` });
+    }
+  });
+  corrs.sort((a,b) => Math.abs(b.diff) - Math.abs(a.diff));
+  if (corrs.length > 0) {
+    corrs.forEach(c => {
+      const color = c.diff > 0 ? 'var(--red)' : c.diff < 0 ? 'var(--green)' : 'var(--gray)';
+      html += `<div class="corr-row"><span>${c.name}</span><span class="corr-val" style="color:${color}">${c.label}</span></div>`;
+    });
+  } else {
+    html += `<div style="color:var(--text2);font-size:14px;">Need more data to compute correlations.</div>`;
+  }
+  html += `</div>`;
+
+  // Most affected areas
+  html += `<div class="insight-card"><div class="insight-title">Most Affected Areas</div>`;
+  const areaCounts = {};
+  allEntries.forEach(e => {
+    e.bodyPartEntries.filter(bp => bp.itchiness !== 'No').forEach(bp => {
+      const key = `${bp.side}. ${bp.bodyPartName}`;
+      areaCounts[key] = (areaCounts[key] || 0) + 1;
+    });
+  });
+  const sortedAreas = Object.entries(areaCounts).sort((a,b) => b[1] - a[1]);
+  if (sortedAreas.length > 0) {
+    sortedAreas.slice(0, 10).forEach(([area, count]) => {
+      const pct = Math.round(count / allEntries.length * 100);
+      html += `<div class="corr-row"><span>${area}</span><span class="corr-val">${count} days (${pct}%)</span></div>`;
+    });
+  } else {
+    html += `<div style="color:var(--text2);font-size:14px;">No itchiness recorded yet.</div>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('page-insights').innerHTML = html;
+}
+
+// ========== CONFIG TAB ==========
+async function renderConfig() {
+  let html = `<h1>Configuration</h1>`;
+
+  // Food types
+  html += `<div class="section-header">Food Types</div><div class="card">`;
+  config.foods.forEach((f, i) => {
+    html += `<div class="config-item"><span>${f.icon}</span><div class="info"><div class="name">${f.name}</div><div class="desc">${f.desc}</div></div>
+      ${f.isBuiltIn ? '<span class="meta">Built-in</span>' : `<button onclick="deleteFood(${i})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button>`}</div>`;
+  });
+  html += `<button class="add-btn" onclick="showAddFood()">＋ Add Food Type</button></div>`;
+
+  // Body parts
+  html += `<div class="section-header">Body Parts</div><div class="card">`;
+  config.bodyParts.forEach((bp, i) => {
+    html += `<div class="config-item"><div class="info"><div class="name">${bp.name}</div><div class="desc">${bp.group}</div></div>
+      <div class="badges">${bp.sides.map(s => `<span class="side-badge ${s}">${s}</span>`).join('')}</div>
+      <button onclick="deleteBodyPart(${i})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
+  });
+  html += `<button class="add-btn" onclick="showAddBodyPart()">＋ Add Body Part</button></div>`;
+
+  // Topical meds
+  const topMeds = config.medications.filter(m => m.medType === 'topical');
+  html += `<div class="section-header">Topical Medications</div><div class="card">`;
+  topMeds.forEach(m => {
+    const idx = config.medications.indexOf(m);
+    html += `<div class="config-item"><span>${m.icon}</span><div class="info"><div class="name">${m.name}</div><div class="desc">${m.desc} · max ${m.maxDose}/day</div></div>
+      <button onclick="deleteMed(${idx})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
+  });
+  html += `<button class="add-btn" onclick="showAddMed('topical')">＋ Add Topical Medication</button>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px;">Applied to specific body parts (creams, ointments)</div></div>`;
+
+  // Systemic meds
+  const sysMeds = config.medications.filter(m => m.medType === 'systemic');
+  html += `<div class="section-header">Systemic Medications</div><div class="card">`;
+  sysMeds.forEach(m => {
+    const idx = config.medications.indexOf(m);
+    html += `<div class="config-item"><span>${m.icon}</span><div class="info"><div class="name">${m.name}</div><div class="desc">${m.desc} · ${m.inputType === 'toggle' ? 'yes/no' : 'dose counter'}</div></div>
+      <button onclick="deleteMed(${idx})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
+  });
+  html += `<button class="add-btn" onclick="showAddMed('systemic')">＋ Add Systemic Medication</button>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px;">Taken orally or injected — tracked once per day, not per body part</div></div>`;
+
+  // Data section
+  html += `<div class="section-header">Data</div><div class="card">
+    <button class="add-btn" onclick="exportCSV()">📤 Export as CSV</button>
+    <button class="add-btn delete-btn" onclick="deleteAllData()">🗑️ Delete All Data</button></div>`;
+
+  document.getElementById('page-config').innerHTML = html;
+}
+
+async function deleteFood(i) {
+  if (confirm(`Delete "${config.foods[i].name}"?`)) {
+    config.foods.splice(i, 1);
+    await saveConfig();
+    renderConfig();
+  }
+}
+
+async function deleteBodyPart(i) {
+  if (confirm(`Delete "${config.bodyParts[i].name}"?`)) {
+    config.bodyParts.splice(i, 1);
+    await saveConfig();
+    renderConfig();
+  }
+}
+
+async function deleteMed(i) {
+  if (confirm(`Delete "${config.medications[i].name}"?`)) {
+    config.medications.splice(i, 1);
+    await saveConfig();
+    renderConfig();
+  }
+}
+
+function showModal(content) {
+  document.getElementById('modal-content').innerHTML = content;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function showAddFood() {
+  showModal(`<h3>Add Food Type</h3>
+    <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Cancel</button>
+    <button class="modal-save" id="save-food-btn" onclick="saveNewFood()">Add</button></div>
+    <div class="form-field"><label>Name</label><input id="af-name" placeholder="e.g. Shellfish"></div>
+    <div class="form-field"><label>Description</label><input id="af-desc" placeholder="e.g. shrimp, lobster"></div>
+    <div class="form-field"><label>Icon emoji</label><input id="af-icon" value="🍽️"></div>`);
+}
+
+async function saveNewFood() {
+  const name = document.getElementById('af-name').value.trim();
+  if (!name) return;
+  config.foods.push({ name, desc: document.getElementById('af-desc').value, icon: document.getElementById('af-icon').value || '🍽️', sortOrder: config.foods.length, isBuiltIn: false });
+  await saveConfig();
+  closeModal();
+  renderConfig();
+}
+
+function showAddBodyPart() {
+  const groups = ['Hand & Arm', 'Armpit & Torso', 'Belly & Back', 'Leg & Foot'];
+  showModal(`<h3>Add Body Part</h3>
+    <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Cancel</button>
+    <button class="modal-save" onclick="saveNewBodyPart()">Add</button></div>
+    <div class="form-field"><label>Name</label><input id="abp-name" placeholder="e.g. Neck, Elbow"></div>
+    <div class="form-field"><label>Sides</label><select id="abp-sides">
+      <option value="LR">Left & Right (mirrored)</option><option value="C">Center only</option>
+      <option value="L">Left only</option><option value="R">Right only</option></select></div>
+    <div class="form-field"><label>Group</label><select id="abp-group">
+      ${groups.map(g => `<option value="${g}">${GROUP_ICONS[g]} ${g}</option>`).join('')}</select></div>`);
+}
+
+async function saveNewBodyPart() {
+  const name = document.getElementById('abp-name').value.trim();
+  if (!name) return;
+  const sideVal = document.getElementById('abp-sides').value;
+  const sides = sideVal === 'LR' ? ['L','R'] : [sideVal];
+  config.bodyParts.push({ name, sides, group: document.getElementById('abp-group').value, sortOrder: config.bodyParts.length });
+  await saveConfig();
+  closeModal();
+  renderConfig();
+}
+
+function showAddMed(type) {
+  const title = type === 'topical' ? 'Add Topical Medication' : 'Add Systemic Medication';
+  const inputTypeField = type === 'systemic' ?
+    `<div class="form-field"><label>Input Type</label><select id="am-input"><option value="counter">Dose counter</option><option value="toggle">Yes / No toggle</option></select></div>` : '';
+  showModal(`<h3>${title}</h3>
+    <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Cancel</button>
+    <button class="modal-save" onclick="saveNewMed('${type}')">Add</button></div>
+    <div class="form-field"><label>Name</label><input id="am-name" placeholder="e.g. Protopic"></div>
+    <div class="form-field"><label>Description</label><input id="am-desc"></div>
+    <div class="form-field"><label>Icon emoji</label><input id="am-icon" value="💊"></div>
+    ${inputTypeField}
+    <div class="form-field"><label>Max dose per day</label><input id="am-max" type="number" value="2" min="1" max="10"></div>`);
+}
+
+async function saveNewMed(type) {
+  const name = document.getElementById('am-name').value.trim();
+  if (!name) return;
+  const inputType = type === 'systemic' ? (document.getElementById('am-input')?.value || 'counter') : 'counter';
+  config.medications.push({
+    name, desc: document.getElementById('am-desc').value, icon: document.getElementById('am-icon').value || '💊',
+    medType: type, inputType, maxDose: parseInt(document.getElementById('am-max').value) || 2,
+    sortOrder: config.medications.length
+  });
+  await saveConfig();
+  closeModal();
+  renderConfig();
+}
+
+function exportCSV() {
+  dbGetAll('entries').then(entries => {
+    entries.sort((a,b) => a.dateString.localeCompare(b.dateString));
+    let csv = 'Date,Food,Systemic Meds,Full Body Moisturizer,Body Part,Side,Itchiness,Moisturizer,Topical Meds\n';
+    entries.forEach(e => {
+      const foods = Object.entries(e.foodConsumed).filter(([_,v])=>v).map(([k])=>k).join('; ');
+      const sysMeds = Object.entries(e.systemicMeds).filter(([_,v])=>v>0).map(([k,v])=>`${k}×${v}`).join('; ');
+      if (e.bodyPartEntries.length === 0) {
+        csv += `${e.dateString},"${foods}","${sysMeds}",${e.fullBodyMoisturizer},,,,, \n`;
+      }
+      e.bodyPartEntries.forEach(bp => {
+        const topMeds = Object.entries(bp.topicalMeds).filter(([_,v])=>v>0).map(([k,v])=>`${k}×${v}`).join('; ');
+        csv += `${e.dateString},"${foods}","${sysMeds}",${e.fullBodyMoisturizer},${bp.bodyPartName},${bp.side},${bp.itchiness},${bp.moisturizerCount},"${topMeds}"\n`;
+      });
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'SkinTracker_Export.csv';
+    a.click(); URL.revokeObjectURL(url);
+  });
+}
+
+async function deleteAllData() {
+  if (confirm('Delete ALL tracking data? This cannot be undone.')) {
+    if (confirm('Are you sure? All history will be permanently lost.')) {
+      const tx = db.transaction('entries', 'readwrite');
+      tx.objectStore('entries').clear();
+      tx.oncomplete = () => { alert('All data deleted.'); renderHistory(); };
+    }
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// ========== INIT ==========
+async function init() {
+  await openDB();
+  await loadConfig();
+  renderToday();
+}
+
+init();
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
