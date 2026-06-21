@@ -205,6 +205,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
+const APP_VERSION = '2.0';
 let db;
 
 function openDB() {
@@ -416,7 +417,7 @@ async function renderToday() {
     if (bp.sides.includes('R')) groups[bp.group].right.push(bp);
   });
 
-  let html = `<h1>Today</h1>`;
+  let html = `<h1>Skin Tracker <span style="font-size:13px;font-weight:400;color:var(--text2)">v${APP_VERSION}</span></h1>`;
 
   // Date nav
   html += `<div class="date-nav">
@@ -919,8 +920,7 @@ async function renderInsights() {
 
 // ========== CONFIG TAB ==========
 async function renderConfig() {
-  const APP_VERSION = '2.0';
-  let html = `<h1>Configuration</h1><div style="text-align:center;font-size:15px;font-weight:500;color:var(--text2);margin:-8px 0 12px;">v${APP_VERSION}</div>`;
+  let html = `<h1>Configuration</h1>`;
 
   // Food types
   html += `<div class="section-header">Food Types</div><div class="card">`;
