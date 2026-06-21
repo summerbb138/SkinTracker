@@ -23,7 +23,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Helvetica Neue',sa
 .app { display:flex; flex-direction:column; height:100vh; height:100dvh; }
 .tab-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 16px 100px 16px; padding-top: calc(var(--safe-top) + 8px); }
 .tab-bar { display:flex; position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:0.5px solid var(--gray4); padding-bottom:var(--safe-bottom); z-index:100; }
-.tab-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:6px 0 4px; border:none; background:none; color:var(--gray); font-size:10px; cursor:pointer; }
+.tab-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:6px 0 4px; border:none; background:none; color:var(--gray); font-size:13px; cursor:pointer; }
 .tab-btn.active { color:var(--blue); }
 .tab-btn svg { width:24px; height:24px; margin-bottom:2px; }
 .tab-page { display:none; }
@@ -31,13 +31,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Helvetica Neue',sa
 
 h1 { font-size:28px; font-weight:700; margin:8px 0 16px; }
 h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
-.section-header { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
+.section-header { font-size:14px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
 
 .card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
 .row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
 .row + .row { border-top:0.5px solid var(--gray5); }
 .row-label { display:flex; align-items:center; gap:8px; font-size:15px; }
-.row-label small { font-size:12px; color:var(--text2); }
+.row-label small { font-size:13px; color:var(--text2); }
 
 /* Toggle */
 .toggle { position:relative; width:51px; height:31px; border-radius:16px; background:var(--gray5); cursor:pointer; transition:background 0.2s; flex-shrink:0; }
@@ -47,7 +47,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 
 /* Segmented control */
 .seg { display:flex; background:var(--gray5); border-radius:8px; padding:2px; gap:1px; }
-.seg-btn { flex:1; padding:6px 4px; border:none; border-radius:7px; background:none; font-size:12px; font-weight:500; cursor:pointer; color:var(--text2); white-space:nowrap; }
+.seg-btn { flex:1; padding:6px 4px; border:none; border-radius:7px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text2); white-space:nowrap; }
 .seg-btn.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .seg-btn.active-orange { background:var(--orange); color:#fff; }
 .seg-btn.active-red { background:var(--red); color:#fff; }
@@ -60,7 +60,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 
 /* Quick actions */
 .quick-actions { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
-.quick-btn { padding:8px 14px; border-radius:20px; border:1px solid var(--blue); background:none; color:var(--blue); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; }
+.quick-btn { padding:8px 14px; border-radius:20px; border:1px solid var(--blue); background:none; color:var(--blue); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; }
 .quick-btn:active { background:var(--blue); color:#fff; }
 
 /* Banner */
@@ -69,7 +69,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .banner-orange { background:rgba(255,149,0,0.15); color:var(--orange); }
 
 /* Side badge */
-.side-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
+.side-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; font-size:13px; font-weight:700; color:#fff; flex-shrink:0; }
 .side-badge.L { background:var(--blue); }
 .side-badge.R { background:var(--purple); }
 .side-badge.C { background:var(--gray); }
@@ -88,20 +88,20 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .body-part + .body-part { border-top:0.5px solid var(--gray5); }
 .bp-header { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
 .bp-header .name { font-size:15px; font-weight:500; flex:1; }
-.bp-header .default-tag { font-size:12px; color:var(--green); font-weight:500; }
+.bp-header .default-tag { font-size:13px; color:var(--green); font-weight:500; }
 .bp-row { display:flex; align-items:center; margin:6px 0; }
-.bp-row-label { font-size:12px; color:var(--text2); width:60px; flex-shrink:0; }
+.bp-row-label { font-size:13px; color:var(--text2); width:60px; flex-shrink:0; }
 
 /* Filter chips */
 .chips { display:flex; gap:6px; overflow-x:auto; padding:4px 0; -webkit-overflow-scrolling:touch; }
 .chips::-webkit-scrollbar { display:none; }
-.chip { padding:7px 12px; border-radius:20px; border:1px solid var(--gray4); background:var(--gray6); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.chip { padding:7px 12px; border-radius:20px; border:1px solid var(--gray4); background:var(--gray6); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0; }
 .chip.active-orange { background:var(--orange); color:#fff; border-color:var(--orange); }
 .chip.active-indigo { background:var(--indigo); color:#fff; border-color:var(--indigo); }
 
 /* Calendar */
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
-.cal-header { font-size:12px; font-weight:600; color:var(--text2); padding:4px; }
+.cal-header { font-size:13px; font-weight:600; color:var(--text2); padding:4px; }
 .cal-day { font-size:14px; padding:8px 4px; border-radius:10px; position:relative; cursor:pointer; }
 .cal-day.today { background:var(--blue); color:#fff; font-weight:700; }
 .cal-dot { width:6px; height:6px; border-radius:50%; margin:2px auto 0; }
@@ -110,12 +110,12 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .hist-card { background:var(--card); border-radius:14px; padding:14px; margin-bottom:10px; }
 .hist-date { font-size:14px; font-weight:600; margin-bottom:6px; }
 .hist-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
-.hist-tag { font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; }
+.hist-tag { font-size:13px; font-weight:600; padding:3px 8px; border-radius:6px; }
 .hist-tag.food { background:rgba(255,149,0,0.15); color:var(--orange); }
 .hist-tag.med { background:rgba(88,86,214,0.15); color:var(--indigo); }
 .hist-tag.clear { background:rgba(52,199,89,0.15); color:var(--green); }
 .hist-bp { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:14px; }
-.severity-tag { font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; }
+.severity-tag { font-size:13px; font-weight:600; padding:3px 8px; border-radius:6px; }
 .severity-mild { background:rgba(255,149,0,0.12); color:var(--orange); }
 .severity-severe { background:rgba(255,59,48,0.12); color:var(--red); }
 
@@ -126,7 +126,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .insight-pickers select { padding:8px 12px; border-radius:10px; border:1px solid var(--blue); background:#fff; color:var(--blue); font-size:14px; font-weight:500; }
 .insight-finding { padding:12px; background:rgba(0,122,255,0.06); border-radius:10px; }
 .insight-finding .big { font-size:22px; font-weight:700; color:var(--red); }
-.insight-finding .detail { font-size:13px; color:var(--text2); margin-top:4px; }
+.insight-finding .detail { font-size:14px; color:var(--text2); margin-top:4px; }
 .corr-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:0.5px solid var(--gray5); font-size:14px; }
 .corr-val { font-weight:600; }
 
@@ -135,9 +135,9 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .config-item + .config-item { border-top:0.5px solid var(--gray5); }
 .config-item .info { flex:1; }
 .config-item .info .name { font-size:15px; font-weight:500; }
-.config-item .info .desc { font-size:12px; color:var(--text2); }
+.config-item .info .desc { font-size:13px; color:var(--text2); }
 .config-item .badges { display:flex; gap:4px; }
-.config-item .meta { font-size:12px; color:var(--text2); }
+.config-item .meta { font-size:13px; color:var(--text2); }
 .add-btn { display:flex; align-items:center; gap:6px; padding:10px 0; color:var(--blue); font-size:15px; font-weight:500; cursor:pointer; border:none; background:none; width:100%; }
 .delete-btn { color:var(--red); }
 
@@ -152,7 +152,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .modal-save { background:var(--blue); color:#fff; }
 .modal-save:disabled { opacity:0.4; }
 .form-field { margin-bottom:14px; }
-.form-field label { font-size:13px; color:var(--text2); display:block; margin-bottom:4px; }
+.form-field label { font-size:14px; color:var(--text2); display:block; margin-bottom:4px; }
 .form-field input, .form-field select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--gray4); font-size:15px; background:#fff; }
 
 /* Date nav */
@@ -746,7 +746,7 @@ async function renderHistory() {
 
   if (selectedFoodFilters.size > 0 || selectedMedFilters.size > 0) {
     const labels = [...selectedFoodFilters, ...selectedMedFilters].join(' + ');
-    html += `<div style="font-size:13px;font-weight:600;color:var(--blue);padding:10px 12px;background:rgba(0,122,255,0.08);border-radius:10px;margin-bottom:8px;">Showing: ${labels}</div>`;
+    html += `<div style="font-size:14px;font-weight:600;color:var(--blue);padding:10px 12px;background:rgba(0,122,255,0.08);border-radius:10px;margin-bottom:8px;">Showing: ${labels}</div>`;
   }
 
   filtered.forEach(entry => {
@@ -919,7 +919,7 @@ async function renderInsights() {
 
 // ========== CONFIG TAB ==========
 async function renderConfig() {
-  const APP_VERSION = '1.1';
+  const APP_VERSION = '2.0';
   let html = `<h1>Configuration</h1><div style="text-align:center;font-size:15px;font-weight:500;color:var(--text2);margin:-8px 0 12px;">v${APP_VERSION}</div>`;
 
   // Food types
@@ -948,7 +948,7 @@ async function renderConfig() {
       <button onclick="deleteMed(${idx})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
   });
   html += `<button class="add-btn" onclick="showAddMed('topical')">＋ Add Topical Medication</button>
-    <div style="font-size:12px;color:var(--text2);margin-top:4px;">Applied to specific body parts (creams, ointments)</div></div>`;
+    <div style="font-size:13px;color:var(--text2);margin-top:4px;">Applied to specific body parts (creams, ointments)</div></div>`;
 
   // Systemic meds
   const sysMeds = config.medications.filter(m => m.medType === 'systemic');
@@ -959,10 +959,13 @@ async function renderConfig() {
       <button onclick="deleteMed(${idx})" style="border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button></div>`;
   });
   html += `<button class="add-btn" onclick="showAddMed('systemic')">＋ Add Systemic Medication</button>
-    <div style="font-size:12px;color:var(--text2);margin-top:4px;">Taken orally or injected — tracked once per day, not per body part</div></div>`;
+    <div style="font-size:13px;color:var(--text2);margin-top:4px;">Taken orally or injected — tracked once per day, not per body part</div></div>`;
 
   // Data section
   html += `<div class="section-header">Data</div><div class="card">
+    <button class="add-btn" onclick="exportJSON()">📦 Export Backup (JSON)</button>
+    <button class="add-btn" onclick="document.getElementById('import-file').click()">📥 Import Backup (JSON)</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(this)">
     <button class="add-btn" onclick="exportCSV()">📤 Export as CSV</button>
     <button class="add-btn delete-btn" onclick="deleteAllData()">🗑️ Delete All Data</button></div>`;
 
@@ -1093,6 +1096,41 @@ function exportCSV() {
     a.href = url; a.download = 'SkinTracker_Export.csv';
     a.click(); URL.revokeObjectURL(url);
   });
+}
+
+async function exportJSON() {
+  const entries = await dbGetAll('entries');
+  const backup = { version: '2.0', exportDate: new Date().toISOString(), config, entries };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `SkinTracker_Backup_${date}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+async function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    if (!backup.entries || !backup.config) { alert('Invalid backup file.'); return; }
+    const count = backup.entries.length;
+    if (!confirm(`Import ${count} entries and config from ${backup.exportDate ? backup.exportDate.slice(0,10) : 'backup'}? This will merge with existing data (existing entries for the same date will be overwritten).`)) return;
+    config = backup.config;
+    config.key = 'appConfig';
+    await saveConfig();
+    for (const entry of backup.entries) {
+      await dbPut('entries', entry);
+    }
+    alert(`Imported ${count} entries and config successfully.`);
+    input.value = '';
+    await loadEntry(currentDate);
+    renderConfig();
+  } catch (e) {
+    alert('Error reading backup file: ' + e.message);
+  }
 }
 
 async function deleteAllData() {
