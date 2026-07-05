@@ -210,7 +210,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 let db;
 
 function openDB() {
@@ -529,23 +529,31 @@ async function renderToday() {
           </div></div>`;
 
         if (topicalMeds.length > 0) {
-          const currentVal = getCurrentTopicalLabel(bpe, topicalMeds);
-          // "None" shares a group with the first medication so it sits on the same row;
-          // each medication's dose buttons stay grouped and wrap together.
-          let groupsHtml = '';
-          topicalMeds.forEach((m, mi) => {
+          // Which med/dose is currently active on this body part (0 = None).
+          let activeMed = '', activeDose = 0;
+          for (const m of topicalMeds) {
+            const v = bpe.topicalMeds[m.name] || 0;
+            if (v > 0) { activeMed = m.name; activeDose = v; break; }
+          }
+          // Build one group per medication; dose buttons stay grouped and never split.
+          const groupEls = topicalMeds.map((m, mi) => {
             let btns = '';
             if (mi === 0) {
-              const noneCls = currentVal === 'None' ? 'active' : '';
-              btns += `<button class="seg-btn ${noneCls}" onclick="setTopical('${esc(p.name)}','${sideKey}','None')">None</button>`;
+              const noneCls = activeMed === '' ? 'active' : '';
+              btns += `<button class="seg-btn ${noneCls}" onclick="setTopicalMed('${esc(p.name)}','${sideKey}','',0)">None</button>`;
             }
+            const short = m.name.substring(0,4);
             for (let d = 1; d <= m.maxDose; d++) {
-              const o = `${m.name.substring(0,4)}×${d}`;
-              const cls = currentVal === o ? 'active' : '';
-              btns += `<button class="seg-btn ${cls}" onclick="setTopical('${esc(p.name)}','${sideKey}','${esc(o)}')">${o}</button>`;
+              const cls = (activeMed === m.name && activeDose === d) ? 'active' : '';
+              btns += `<button class="seg-btn ${cls}" onclick="setTopicalMed('${esc(p.name)}','${sideKey}','${esc(m.name)}',${d})">${short}${d}</button>`;
             }
-            groupsHtml += `<div class="med-group">${btns}</div>`;
+            return `<div class="med-group">${btns}</div>`;
           });
+          // Force "None + first med" onto row 1; remaining meds pack together on the next row(s).
+          const rowBreak = '<div style="flex-basis:100%;height:0;"></div>';
+          const groupsHtml = groupEls.length > 1
+            ? groupEls[0] + rowBreak + groupEls.slice(1).join('')
+            : groupEls.join('');
           s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
         }
         s += `</div>`;
@@ -565,14 +573,6 @@ async function renderToday() {
 }
 
 function esc(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
-
-function getCurrentTopicalLabel(bpe, topicalMeds) {
-  for (const m of topicalMeds) {
-    const val = bpe.topicalMeds[m.name] || 0;
-    if (val > 0) return `${m.name.substring(0,4)}×${val}`;
-  }
-  return 'None';
-}
 
 function getItchySummary(entry) {
   let mild = 0, severe = 0;
@@ -635,17 +635,12 @@ async function setMoist(name, side, val) {
   if (bpe) { bpe.moisturizerCount = val; await saveEntry(); renderToday(); }
 }
 
-async function setTopical(bpName, side, label) {
+async function setTopicalMed(bpName, side, medName, dose) {
   const bpe = currentEntry.bodyPartEntries.find(e => e.bodyPartName === bpName && e.side === side);
   if (!bpe) return;
   const topicalMeds = config.medications.filter(m => m.medType === 'topical');
   topicalMeds.forEach(m => bpe.topicalMeds[m.name] = 0);
-  if (label !== 'None') {
-    const prefix = label.split('×')[0];
-    const dose = parseInt(label.split('×')[1]) || 1;
-    const med = topicalMeds.find(m => m.name.substring(0,4) === prefix);
-    if (med) bpe.topicalMeds[med.name] = dose;
-  }
+  if (medName) bpe.topicalMeds[medName] = dose;
   await saveEntry();
   renderToday();
 }
