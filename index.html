@@ -52,10 +52,13 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .seg-btn.active-orange { background:var(--orange); color:#fff; }
 .seg-btn.active-red { background:var(--red); color:#fff; }
 
-/* Topical med: dose buttons grouped per medication, wrapping by group */
-.topical-seg { display:flex; flex-wrap:wrap; gap:6px; flex:1; }
+/* Topical med: label stacked above so the dose buttons get the full row width;
+   buttons grouped per medication and wrap by group. */
+.bp-row-topical { flex-direction:column; align-items:stretch; }
+.bp-row-topical .bp-row-label { width:auto; margin-bottom:6px; }
+.topical-seg { display:flex; flex-wrap:wrap; gap:6px; width:100%; }
 .med-group { display:inline-flex; gap:2px; background:var(--gray5); border-radius:10px; padding:3px; }
-.med-group .seg-btn { flex:0 0 auto; min-height:42px; padding:10px 14px; }
+.med-group .seg-btn { flex:0 0 auto; min-height:42px; padding:10px 12px; }
 
 /* Stepper */
 .stepper { display:flex; align-items:center; gap:0; background:var(--gray5); border-radius:8px; overflow:hidden; }
@@ -210,7 +213,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 let db;
 
 function openDB() {
@@ -554,7 +557,7 @@ async function renderToday() {
           const groupsHtml = groupEls.length > 1
             ? groupEls[0] + rowBreak + groupEls.slice(1).join('')
             : groupEls.join('');
-          s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
+          s += `<div class="bp-row bp-row-topical"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
         }
         s += `</div>`;
       });
