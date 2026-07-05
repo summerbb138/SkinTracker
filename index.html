@@ -46,11 +46,16 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .toggle.on::after { transform:translateX(20px); }
 
 /* Segmented control */
-.seg { display:flex; background:var(--gray5); border-radius:8px; padding:2px; gap:1px; }
-.seg-btn { flex:1; padding:6px 4px; border:none; border-radius:7px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text2); white-space:nowrap; }
+.seg { display:flex; background:var(--gray5); border-radius:10px; padding:3px; gap:2px; }
+.seg-btn { flex:1; min-height:44px; padding:11px 6px; border:none; border-radius:8px; background:none; font-size:15px; font-weight:500; cursor:pointer; color:var(--text2); white-space:nowrap; }
 .seg-btn.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .seg-btn.active-orange { background:var(--orange); color:#fff; }
 .seg-btn.active-red { background:var(--red); color:#fff; }
+
+/* Topical med: dose buttons grouped per medication, wrapping by group */
+.topical-seg { display:flex; flex-wrap:wrap; gap:6px; flex:1; }
+.med-group { display:inline-flex; gap:2px; background:var(--gray5); border-radius:10px; padding:3px; }
+.med-group .seg-btn { flex:0 0 auto; min-height:42px; padding:10px 14px; }
 
 /* Stepper */
 .stepper { display:flex; align-items:center; gap:0; background:var(--gray5); border-radius:8px; overflow:hidden; }
@@ -205,7 +210,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 let db;
 
 function openDB() {
@@ -285,9 +290,10 @@ const DEFAULT_BODY_PARTS = [
 const DEFAULT_MEDICATIONS = [
   { name:'Betaderm', desc:'corticosteroid cream', icon:'🧴', medType:'topical', inputType:'counter', maxDose:2, sortOrder:0 },
   { name:'Elidel', desc:'calcineurin inhibitor', icon:'🧴', medType:'topical', inputType:'counter', maxDose:2, sortOrder:1 },
-  { name:'Reactine', desc:'antihistamine', icon:'💊', medType:'systemic', inputType:'counter', maxDose:3, sortOrder:2 },
-  { name:'Dupixent', desc:'biologic injection', icon:'💉', medType:'systemic', inputType:'toggle', maxDose:1, sortOrder:3 },
-  { name:'Prednisone', desc:'corticosteroid', icon:'💊', medType:'systemic', inputType:'counter', maxDose:5, sortOrder:4 }
+  { name:'Protopic', desc:'tacrolimus ointment', icon:'🧴', medType:'topical', inputType:'counter', maxDose:2, sortOrder:2 },
+  { name:'Reactine', desc:'antihistamine', icon:'💊', medType:'systemic', inputType:'counter', maxDose:3, sortOrder:3 },
+  { name:'Dupixent', desc:'biologic injection', icon:'💉', medType:'systemic', inputType:'toggle', maxDose:1, sortOrder:4 },
+  { name:'Prednisone', desc:'corticosteroid', icon:'💊', medType:'systemic', inputType:'counter', maxDose:5, sortOrder:5 }
 ];
 
 const GROUP_ICONS = { 'Hand & Arm':'👋', 'Armpit & Torso':'🧍', 'Belly & Back':'🫃', 'Leg & Foot':'🦵' };
@@ -523,17 +529,24 @@ async function renderToday() {
           </div></div>`;
 
         if (topicalMeds.length > 0) {
-          const options = ['None'];
-          topicalMeds.forEach(m => {
-            for (let d = 1; d <= m.maxDose; d++) options.push(`${m.name.substring(0,4)}×${d}`);
-          });
           const currentVal = getCurrentTopicalLabel(bpe, topicalMeds);
-          s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="seg" style="flex-wrap:wrap;">
-            ${options.map(o => {
+          // "None" shares a group with the first medication so it sits on the same row;
+          // each medication's dose buttons stay grouped and wrap together.
+          let groupsHtml = '';
+          topicalMeds.forEach((m, mi) => {
+            let btns = '';
+            if (mi === 0) {
+              const noneCls = currentVal === 'None' ? 'active' : '';
+              btns += `<button class="seg-btn ${noneCls}" onclick="setTopical('${esc(p.name)}','${sideKey}','None')">None</button>`;
+            }
+            for (let d = 1; d <= m.maxDose; d++) {
+              const o = `${m.name.substring(0,4)}×${d}`;
               const cls = currentVal === o ? 'active' : '';
-              return `<button class="seg-btn ${cls}" onclick="setTopical('${esc(p.name)}','${sideKey}','${esc(o)}')" style="flex:0 0 auto;padding:6px 8px;">${o}</button>`;
-            }).join('')}
-          </div></div>`;
+              btns += `<button class="seg-btn ${cls}" onclick="setTopical('${esc(p.name)}','${sideKey}','${esc(o)}')">${o}</button>`;
+            }
+            groupsHtml += `<div class="med-group">${btns}</div>`;
+          });
+          s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
         }
         s += `</div>`;
       });
@@ -961,12 +974,19 @@ async function renderConfig() {
   html += `<button class="add-btn" onclick="showAddMed('systemic')">＋ Add Systemic Medication</button>
     <div style="font-size:13px;color:var(--text2);margin-top:4px;">Taken orally or injected — tracked once per day, not per body part</div></div>`;
 
-  // Data section
-  html += `<div class="section-header">Data</div><div class="card">
-    <button class="add-btn" onclick="exportJSON()">📦 Export Backup (JSON)</button>
-    <button class="add-btn" onclick="document.getElementById('import-file').click()">📥 Import Backup (JSON)</button>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(this)">
-    <button class="add-btn" onclick="exportCSV()">📤 Export as CSV</button>
+  // Backup & Restore section
+  html += `<div class="section-header">Backup &amp; Restore</div><div class="card">
+    <button class="add-btn" onclick="exportJSON()">📦 Back Up Data (Save / Share)</button>
+    <button class="add-btn" onclick="copyBackup()">📋 Copy Backup to Clipboard</button>
+    <button class="add-btn" onclick="document.getElementById('import-file').click()">📥 Restore from File</button>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importJSON(this)">
+    <button class="add-btn" onclick="showRestoreText()">📝 Restore from Pasted Text</button>
+    <div style="font-size:13px;color:var(--text2);margin-top:6px;">On iPhone, "Back Up" opens the share sheet — save the file to Files/iCloud or email it to yourself. To restore, use that saved file or paste the copied text.</div></div>`;
+
+  // Export & danger section
+  html += `<div class="section-header">Export</div><div class="card">
+    <button class="add-btn" onclick="exportCSV()">📤 Export as CSV</button></div>`;
+  html += `<div class="section-header">Danger Zone</div><div class="card">
     <button class="add-btn delete-btn" onclick="deleteAllData()">🗑️ Delete All Data</button></div>`;
 
   document.getElementById('page-config').innerHTML = html;
@@ -1075,6 +1095,32 @@ async function saveNewMed(type) {
   renderConfig();
 }
 
+// Save a file via the native share sheet (works in an iOS standalone PWA),
+// falling back to a normal browser download on platforms without file sharing.
+async function shareOrDownload(filename, mimeType, content) {
+  try {
+    const file = new File([content], filename, { type: mimeType });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user dismissed the share sheet
+    // otherwise fall through to the download fallback
+  }
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function backupContent() {
+  const entries = await dbGetAll('entries');
+  return { backup: { version: APP_VERSION, exportDate: new Date().toISOString(), config, entries }, count: entries.length };
+}
+
 function exportCSV() {
   dbGetAll('entries').then(entries => {
     entries.sort((a,b) => a.dateString.localeCompare(b.dateString));
@@ -1090,47 +1136,73 @@ function exportCSV() {
         csv += `${e.dateString},"${foods}","${sysMeds}",${e.fullBodyMoisturizer},${bp.bodyPartName},${bp.side},${bp.itchiness},${bp.moisturizerCount},"${topMeds}"\n`;
       });
     });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'SkinTracker_Export.csv';
-    a.click(); URL.revokeObjectURL(url);
+    shareOrDownload('SkinTracker_Export.csv', 'text/csv', csv);
   });
 }
 
 async function exportJSON() {
-  const entries = await dbGetAll('entries');
-  const backup = { version: '2.0', exportDate: new Date().toISOString(), config, entries };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const { backup } = await backupContent();
   const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `SkinTracker_Backup_${date}.json`;
-  a.click(); URL.revokeObjectURL(url);
+  await shareOrDownload(`SkinTracker_Backup_${date}.json`, 'application/json', JSON.stringify(backup, null, 2));
+}
+
+async function copyBackup() {
+  const { backup, count } = await backupContent();
+  const json = JSON.stringify(backup);
+  try {
+    await navigator.clipboard.writeText(json);
+    alert(`Backup of ${count} entries copied to clipboard. Paste it somewhere safe (Notes, email, a message). To restore later, use "Restore from Pasted Text".`);
+  } catch (e) {
+    // Clipboard blocked — show the text so the user can select and copy manually.
+    showModal(`<h3>Copy Backup</h3>
+      <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Close</button></div>
+      <div class="form-field"><label>Select all and copy this text, then save it somewhere safe.</label>
+      <textarea readonly style="width:100%;height:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--gray4);font-size:12px;">${json.replace(/</g,'&lt;')}</textarea></div>`);
+  }
+}
+
+function showRestoreText() {
+  showModal(`<h3>Restore from Text</h3>
+    <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Cancel</button>
+    <button class="modal-save" onclick="restoreFromText()">Restore</button></div>
+    <div class="form-field"><label>Paste your backup text below</label>
+    <textarea id="restore-text" style="width:100%;height:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--gray4);font-size:12px;" placeholder="Paste the copied backup text here"></textarea></div>`);
+}
+
+async function restoreFromText() {
+  const text = document.getElementById('restore-text').value.trim();
+  if (!text) return;
+  await applyBackup(text);
+}
+
+// Validate, confirm, and apply a backup (from a file or pasted text).
+async function applyBackup(text) {
+  let backup;
+  try { backup = JSON.parse(text); }
+  catch (e) { alert('Could not read backup — the text is not valid backup data.'); return; }
+  if (!backup.entries || !backup.config) { alert('Invalid backup — missing entries or settings.'); return; }
+  const count = backup.entries.length;
+  if (!confirm(`Restore ${count} entries and settings from ${backup.exportDate ? backup.exportDate.slice(0,10) : 'backup'}? This merges with existing data (entries for the same date will be overwritten).`)) return;
+  config = backup.config;
+  config.key = 'appConfig';
+  await saveConfig();
+  for (const entry of backup.entries) {
+    await dbPut('entries', entry);
+  }
+  closeModal();
+  alert(`Restored ${count} entries and settings.`);
+  await loadEntry(currentDate);
+  renderConfig();
 }
 
 async function importJSON(input) {
   const file = input.files[0];
   if (!file) return;
-  try {
-    const text = await file.text();
-    const backup = JSON.parse(text);
-    if (!backup.entries || !backup.config) { alert('Invalid backup file.'); return; }
-    const count = backup.entries.length;
-    if (!confirm(`Import ${count} entries and config from ${backup.exportDate ? backup.exportDate.slice(0,10) : 'backup'}? This will merge with existing data (existing entries for the same date will be overwritten).`)) return;
-    config = backup.config;
-    config.key = 'appConfig';
-    await saveConfig();
-    for (const entry of backup.entries) {
-      await dbPut('entries', entry);
-    }
-    alert(`Imported ${count} entries and config successfully.`);
-    input.value = '';
-    await loadEntry(currentDate);
-    renderConfig();
-  } catch (e) {
-    alert('Error reading backup file: ' + e.message);
-  }
+  let text;
+  try { text = await file.text(); }
+  catch (e) { alert('Error reading backup file: ' + e.message); input.value = ''; return; }
+  input.value = '';
+  await applyBackup(text);
 }
 
 async function deleteAllData() {
