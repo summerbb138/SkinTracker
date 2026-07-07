@@ -62,9 +62,9 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 
 /* Stepper */
 .stepper { display:flex; align-items:center; gap:0; background:var(--gray5); border-radius:8px; overflow:hidden; }
-.stepper button { width:32px; height:32px; border:none; background:none; font-size:18px; font-weight:500; color:var(--blue); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.stepper button { width:44px; height:44px; border:none; background:none; font-size:20px; font-weight:500; color:var(--blue); cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .stepper button:active { background:var(--gray4); }
-.stepper span { min-width:28px; text-align:center; font-size:15px; font-weight:600; border-left:0.5px solid var(--gray4); border-right:0.5px solid var(--gray4); padding:4px 0; }
+.stepper span { min-width:32px; text-align:center; font-size:16px; font-weight:600; border-left:0.5px solid var(--gray4); border-right:0.5px solid var(--gray4); padding:4px 0; }
 
 /* Quick actions */
 .quick-actions { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
@@ -165,7 +165,8 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 
 /* Date nav */
 .date-nav { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
-.date-nav button { width:32px; height:32px; border-radius:50%; border:none; background:var(--gray5); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--blue); }
+.date-nav button { width:44px; height:44px; border-radius:50%; border:none; background:var(--gray5); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--blue); }
+.date-nav button.today-chip { width:auto; height:34px; padding:0 14px; border-radius:17px; font-size:14px; font-weight:600; background:rgba(0,122,255,0.1); }
 .date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; }
 .date-nav input[type=date] { position:absolute; opacity:0; width:0; height:0; }
 
@@ -213,7 +214,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 let db;
 
 function openDB() {
@@ -433,6 +434,7 @@ async function renderToday() {
     <button onclick="changeDate(-1)">&lsaquo;</button>
     <span class="date-text" id="date-display">${formatDateLong(currentDate)}</span>
     <button onclick="changeDate(1)">&rsaquo;</button>
+    ${currentDate !== dateKey(new Date()) ? '<button class="today-chip" onclick="gotoToday()">Today</button>' : ''}
     <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
   </div>`;
 
@@ -597,6 +599,20 @@ function pickDate(val) {
   if (val) { currentDate = val; renderToday(); }
 }
 
+function gotoToday() {
+  currentDate = dateKey(new Date());
+  renderToday();
+}
+
+// Jump from the History calendar to a specific date on the Today tab.
+function gotoDate(key) {
+  currentDate = key;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'today'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-today').classList.add('active');
+  renderToday();
+}
+
 async function toggleFood(name) {
   currentEntry.foodConsumed[name] = !currentEntry.foodConsumed[name];
   await saveEntry();
@@ -732,10 +748,10 @@ async function renderHistory() {
     let dot = '';
     if (entry) {
       const s = getItchySummary(entry);
-      const color = s.severe > 0 ? 'var(--orange)' : 'var(--green)';
+      const color = s.severe > 0 ? 'var(--red)' : s.mild > 0 ? 'var(--orange)' : 'var(--green)';
       dot = `<div class="cal-dot" style="background:${color}"></div>`;
     }
-    html += `<div class="cal-day ${isToday}">${d}${dot}</div>`;
+    html += `<div class="cal-day ${isToday}" onclick="gotoDate('${key}')">${d}${dot}</div>`;
   }
   html += `</div></div>`;
 
@@ -820,19 +836,22 @@ async function renderInsights() {
     return;
   }
 
+  // Read current picker selections BEFORE rebuilding, then mark them `selected`
+  // so the dropdowns keep showing what the stats below are computed from.
+  const selFood = document.getElementById('insight-food')?.value || config.foods[0]?.name;
+  const selArea = document.getElementById('insight-area')?.value || 'All areas';
+  const selMed = document.getElementById('insight-med')?.value || config.medications[0]?.name;
+
   let html = `<h1>Insights</h1>`;
 
   // Food correlation
   html += `<div class="insight-card"><div class="insight-title">Does food affect my skin?</div>
     <div class="insight-pickers">
       <select id="insight-food" onchange="renderInsights()">`;
-  config.foods.forEach(f => html += `<option value="${f.name}">${f.name}</option>`);
-  html += `</select><span>→</span><select id="insight-area" onchange="renderInsights()"><option value="All areas">All areas</option>`;
-  config.bodyParts.forEach(bp => bp.sides.forEach(s => html += `<option value="${s}.${bp.name}">${s}. ${bp.name}</option>`));
+  config.foods.forEach(f => html += `<option value="${f.name}" ${f.name === selFood ? 'selected' : ''}>${f.name}</option>`);
+  html += `</select><span>→</span><select id="insight-area" onchange="renderInsights()"><option value="All areas" ${selArea === 'All areas' ? 'selected' : ''}>All areas</option>`;
+  config.bodyParts.forEach(bp => bp.sides.forEach(s => html += `<option value="${s}.${bp.name}" ${`${s}.${bp.name}` === selArea ? 'selected' : ''}>${s}. ${bp.name}</option>`));
   html += `</select></div>`;
-
-  const selFood = document.getElementById('insight-food')?.value || config.foods[0]?.name;
-  const selArea = document.getElementById('insight-area')?.value || 'All areas';
 
   const foodDays = allEntries.filter(e => e.foodConsumed[selFood]);
   const noFoodDays = allEntries.filter(e => !e.foodConsumed[selFood]);
@@ -855,10 +874,9 @@ async function renderInsights() {
   // Medication correlation
   html += `<div class="insight-card"><div class="insight-title">Does medication help?</div>
     <div class="insight-pickers"><select id="insight-med" onchange="renderInsights()">`;
-  config.medications.forEach(m => html += `<option value="${m.name}">${m.name} (${m.medType})</option>`);
+  config.medications.forEach(m => html += `<option value="${m.name}" ${m.name === selMed ? 'selected' : ''}>${m.name} (${m.medType})</option>`);
   html += `</select></div>`;
 
-  const selMed = document.getElementById('insight-med')?.value || config.medications[0]?.name;
   const med = config.medications.find(m => m.name === selMed);
 
   let medDays, reliefDays = 0;
