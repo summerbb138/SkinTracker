@@ -4,7 +4,7 @@
   "description": "Track daily skin conditions, food intake, and medication usage",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#2b8fff",
+  "background_color": "#4a9bff",
   "theme_color": "#007aff",
   "orientation": "portrait",
   "icons": [
