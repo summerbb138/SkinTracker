@@ -213,7 +213,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.5';
+const APP_VERSION = '2.6';
 let db;
 
 function openDB() {
@@ -533,22 +533,20 @@ async function renderToday() {
           </div></div>`;
 
         if (topicalMeds.length > 0) {
-          // Which med/dose is currently active on this body part (0 = None).
-          let activeMed = '', activeDose = 0;
-          for (const m of topicalMeds) {
-            const v = bpe.topicalMeds[m.name] || 0;
-            if (v > 0) { activeMed = m.name; activeDose = v; break; }
-          }
+          // Meds are independent: each can be active at its own dose simultaneously
+          // (e.g. Beta2 + Prot1). "None" is active only when every med is 0.
+          const anyActive = topicalMeds.some(m => (bpe.topicalMeds[m.name] || 0) > 0);
           // Build one group per medication; dose buttons stay grouped and never split.
           const groupEls = topicalMeds.map((m, mi) => {
             let btns = '';
             if (mi === 0) {
-              const noneCls = activeMed === '' ? 'active' : '';
+              const noneCls = anyActive ? '' : 'active';
               btns += `<button class="seg-btn ${noneCls}" onclick="setTopicalMed('${esc(p.name)}','${sideKey}','',0)">None</button>`;
             }
             const short = m.name.substring(0,4);
+            const val = bpe.topicalMeds[m.name] || 0;
             for (let d = 1; d <= m.maxDose; d++) {
-              const cls = (activeMed === m.name && activeDose === d) ? 'active' : '';
+              const cls = val === d ? 'active' : '';
               btns += `<button class="seg-btn ${cls}" onclick="setTopicalMed('${esc(p.name)}','${sideKey}','${esc(m.name)}',${d})">${short}${d}</button>`;
             }
             return `<div class="med-group">${btns}</div>`;
@@ -656,9 +654,13 @@ async function setMoist(name, side, val) {
 async function setTopicalMed(bpName, side, medName, dose) {
   const bpe = currentEntry.bodyPartEntries.find(e => e.bodyPartName === bpName && e.side === side);
   if (!bpe) return;
-  const topicalMeds = config.medications.filter(m => m.medType === 'topical');
-  topicalMeds.forEach(m => bpe.topicalMeds[m.name] = 0);
-  if (medName) bpe.topicalMeds[medName] = dose;
+  if (!medName) {
+    // "None" clears every topical med on this body part
+    Object.keys(bpe.topicalMeds).forEach(k => bpe.topicalMeds[k] = 0);
+  } else {
+    // Meds are independent (combos allowed); tapping the active dose toggles that med off
+    bpe.topicalMeds[medName] = bpe.topicalMeds[medName] === dose ? 0 : dose;
+  }
   await saveEntry();
   renderToday();
 }
