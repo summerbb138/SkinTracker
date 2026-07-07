@@ -52,13 +52,10 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .seg-btn.active-orange { background:var(--orange); color:#fff; }
 .seg-btn.active-red { background:var(--red); color:#fff; }
 
-/* Topical med: label stacked above so the dose buttons get the full row width;
-   buttons grouped per medication and wrap by group. */
-.bp-row-topical { flex-direction:column; align-items:stretch; }
-.bp-row-topical .bp-row-label { width:auto; margin-bottom:6px; }
+/* Topical med: dose buttons grouped per medication; groups share rows evenly. */
 .topical-seg { display:flex; flex-wrap:wrap; gap:6px; width:100%; }
-.med-group { display:inline-flex; gap:2px; background:var(--gray5); border-radius:10px; padding:3px; }
-.med-group .seg-btn { flex:0 0 auto; min-height:42px; padding:10px 12px; }
+.med-group { display:flex; flex:1 1 0; gap:2px; background:var(--gray5); border-radius:10px; padding:3px; }
+.med-group .seg-btn { flex:1; min-height:42px; padding:10px 6px; }
 
 /* Stepper */
 .stepper { display:flex; align-items:center; gap:0; background:var(--gray5); border-radius:8px; overflow:hidden; }
@@ -97,8 +94,10 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .bp-header { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
 .bp-header .name { font-size:15px; font-weight:500; flex:1; }
 .bp-header .default-tag { font-size:13px; color:var(--green); font-weight:500; }
-.bp-row { display:flex; align-items:center; margin:6px 0; }
-.bp-row-label { font-size:13px; color:var(--text2); width:60px; flex-shrink:0; }
+/* Stacked rows: label above a full-width control, so Itchiness / Moisturizer /
+   Topical Med all share the same left edge and labels never truncate. */
+.bp-row { margin:10px 0; }
+.bp-row-label { display:block; font-size:13px; color:var(--text2); margin-bottom:5px; }
 
 /* Filter chips */
 .chips { display:flex; gap:6px; overflow-x:auto; padding:4px 0; -webkit-overflow-scrolling:touch; }
@@ -214,7 +213,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 let db;
 
 function openDB() {
@@ -559,7 +558,7 @@ async function renderToday() {
           const groupsHtml = groupEls.length > 1
             ? groupEls[0] + rowBreak + groupEls.slice(1).join('')
             : groupEls.join('');
-          s += `<div class="bp-row bp-row-topical"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
+          s += `<div class="bp-row"><span class="bp-row-label">Topical Med</span><div class="topical-seg">${groupsHtml}</div></div>`;
         }
         s += `</div>`;
       });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skintracker-v6';
+const CACHE_NAME = 'skintracker-v7';
 const ASSETS = [
   './index.html',
   './manifest.json',
