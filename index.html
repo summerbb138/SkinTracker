@@ -14,7 +14,7 @@
   --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30;
   --indigo: #5856d6; --purple: #af52de; --gray: #8e8e93; --gray2: #aeaeb2;
   --gray4: #d1d1d6; --gray5: #e5e5ea; --gray6: #f2f2f7;
-  --bg: #e4eefa; --card: #fff; --text: #000; --text2: #3c3c43cc;
+  --bg: #007aff; --card: #fff; --text: #000; --text2: #3c3c43cc;
   --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -29,9 +29,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Helvetica Neue',sa
 .tab-page { display:none; }
 .tab-page.active { display:block; }
 
-h1 { font-size:28px; font-weight:700; margin:8px 0 16px; }
+h1 { font-size:28px; font-weight:700; margin:8px 0 16px; color:#fff; }
 h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
-.section-header { font-size:14px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
+.section-header { font-size:14px; font-weight:600; color:rgba(255,255,255,0.92); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
 
 .card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
 .row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
@@ -165,8 +165,8 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 /* Date nav */
 .date-nav { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
 .date-nav button { width:44px; height:44px; border-radius:50%; border:none; background:var(--gray5); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--blue); }
-.date-nav button.today-chip { width:auto; height:34px; padding:0 14px; border-radius:17px; font-size:14px; font-weight:600; background:rgba(0,122,255,0.1); }
-.date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; }
+.date-nav button.today-chip { width:auto; height:34px; padding:0 14px; border-radius:17px; font-size:14px; font-weight:600; background:#fff; }
+.date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; color:#fff; }
 .date-nav input[type=date] { position:absolute; opacity:0; width:0; height:0; }
 
 /* Copy L->R bottom btn */
@@ -213,7 +213,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '2.7';
+const APP_VERSION = '2.8';
 let db;
 
 function openDB() {
@@ -426,7 +426,7 @@ async function renderToday() {
     if (bp.sides.includes('R')) groups[bp.group].right.push(bp);
   });
 
-  let html = `<h1>Skin Tracker <span style="font-size:13px;font-weight:400;color:var(--text2)">v${APP_VERSION}</span></h1>`;
+  let html = `<h1>Skin Tracker <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.75)">v${APP_VERSION}</span></h1>`;
 
   // Date nav
   html += `<div class="date-nav">
