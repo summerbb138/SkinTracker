@@ -15,6 +15,7 @@
   --indigo: #5856d6; --purple: #af52de; --gray: #8e8e93; --gray2: #aeaeb2;
   --gray4: #d1d1d6; --gray5: #e5e5ea; --gray6: #f2f2f7;
   --bg: #4a9bff; --card: #fff; --text: #000; --text2: #3c3c43cc;
+  --on-bg: #fff; --on-bg-dim: rgba(255,255,255,0.92); --card-border: transparent;
   --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -29,11 +30,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Helvetica Neue',sa
 .tab-page { display:none; }
 .tab-page.active { display:block; }
 
-h1 { font-size:28px; font-weight:700; margin:8px 0 16px; color:#fff; }
+h1 { font-size:28px; font-weight:700; margin:8px 0 16px; color:var(--on-bg); }
 h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
-.section-header { font-size:14px; font-weight:600; color:rgba(255,255,255,0.92); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
+.section-header { font-size:14px; font-weight:600; color:var(--on-bg-dim); text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px 4px; }
 
-.card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
+.card { background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
 .row + .row { border-top:0.5px solid var(--gray5); }
 .row-label { display:flex; align-items:center; gap:8px; font-size:16px; font-weight:500; }
@@ -114,7 +115,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .cal-dot { width:6px; height:6px; border-radius:50%; margin:2px auto 0; }
 
 /* History card */
-.hist-card { background:var(--card); border-radius:14px; padding:14px; margin-bottom:10px; }
+.hist-card { background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .hist-date { font-size:14px; font-weight:600; margin-bottom:6px; }
 .hist-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
 .hist-tag { font-size:13px; font-weight:600; padding:3px 8px; border-radius:6px; }
@@ -127,7 +128,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .severity-severe { background:rgba(255,59,48,0.12); color:var(--red); }
 
 /* Insights */
-.insight-card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:12px; }
+.insight-card { background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .insight-title { font-size:16px; font-weight:600; margin-bottom:10px; }
 .insight-pickers { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
 .insight-pickers select { padding:8px 12px; border-radius:10px; border:1px solid var(--blue); background:#fff; color:var(--blue); font-size:14px; font-weight:500; }
@@ -173,8 +174,8 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 /* Date nav */
 .date-nav { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
 .date-nav button { width:44px; height:44px; border-radius:50%; border:none; background:var(--gray5); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--blue); }
-.date-nav button.today-chip { width:auto; height:34px; padding:0 14px; border-radius:17px; font-size:14px; font-weight:600; background:#fff; }
-.date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; color:#fff; }
+.date-nav button.today-chip { width:auto; height:34px; padding:0 14px; border-radius:17px; font-size:14px; font-weight:600; background:var(--blue); color:#fff; }
+.date-nav .date-text { font-size:16px; font-weight:600; cursor:pointer; color:var(--on-bg); }
 .date-nav input[type=date] { position:absolute; opacity:0; width:0; height:0; }
 
 /* Copy L->R bottom btn */
@@ -221,7 +222,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.2';
+const APP_VERSION = '3.3';
 let db;
 
 function openDB() {
@@ -314,12 +315,21 @@ const GROUP_ICONS = { 'Hand & Arm':'👋', 'Armpit & Torso':'🧍', 'Belly & Bac
 // white-filled buttons and solid status colors stay fixed (the v3.1 structure).
 // All are tuned to meet or beat v3.1's contrast and avoid the status hues.
 const THEME_PRESETS = [
+  // Bold lane (white on-bg text)
   { name:'Ocean',  bg:'#4a9bff', accent:'#007aff' },
   { name:'Indigo', bg:'#6a74e6', accent:'#3a44c4' },
   { name:'Violet', bg:'#8a7cff', accent:'#5b32d6' },
   { name:'Plum',   bg:'#a35fce', accent:'#7a2fb0' },
-  { name:'Slate',  bg:'#6b7a92', accent:'#334e78' }
+  { name:'Slate',  bg:'#6b7a92', accent:'#334e78' },
+  // Light lane (dark on-bg text — the on-bg text colour auto-flips per background)
+  { name:'Mist',       bg:'#e4eefa', accent:'#1667d6' },
+  { name:'Lilac',      bg:'#efeafe', accent:'#6a3fd4' },
+  { name:'Cloud',      bg:'#eef1f6', accent:'#0a6ed6' },
+  { name:'Periwinkle', bg:'#e8e9fb', accent:'#3a44c4' }
 ];
+
+// Whether a given background should carry dark text (light bg) or white text (dark bg).
+function bgWantsDarkText(bg){ return contrastRatio('#1c1c1e', bg) > contrastRatio('#ffffff', bg); }
 const ACCENT_MIN_CONTRAST = 4.0; // accent-on-white floor (v3.1 benchmark)
 
 function _lin(c){ return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
@@ -337,8 +347,15 @@ function contrastRatio(a, b){
 function applyTheme(){
   const t = config.theme;
   if (!t) return; // no theme saved yet -> keep the CSS default (Ocean / v3.1)
-  document.documentElement.style.setProperty('--bg', t.bg);
-  document.documentElement.style.setProperty('--blue', t.accent);
+  const root = document.documentElement.style;
+  root.setProperty('--bg', t.bg);
+  root.setProperty('--blue', t.accent);
+  // On-background text flips with the background; light backgrounds also get a
+  // hairline card border so the white cards don't disappear into the background.
+  const dark = bgWantsDarkText(t.bg);
+  root.setProperty('--on-bg', dark ? '#1c1c1e' : '#ffffff');
+  root.setProperty('--on-bg-dim', dark ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.92)');
+  root.setProperty('--card-border', dark ? 'rgba(0,0,0,0.08)' : 'transparent');
 }
 
 async function setThemePreset(name){
@@ -489,7 +506,7 @@ async function renderToday() {
     if (bp.sides.includes('R')) groups[bp.group].right.push(bp);
   });
 
-  let html = `<h1>Skin Tracker <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.75)">v${APP_VERSION}</span></h1>`;
+  let html = `<h1>Skin Tracker <span style="font-size:13px;font-weight:400;color:var(--on-bg-dim)">v${APP_VERSION}</span></h1>`;
 
   // Date nav
   html += `<div class="date-nav">
@@ -1015,23 +1032,6 @@ async function renderInsights() {
 async function renderConfig() {
   let html = `<h1>Configuration</h1>`;
 
-  // Appearance / theme
-  const curTheme = config.theme || THEME_PRESETS[0];
-  html += `<div class="section-header">Appearance</div><div class="card">
-    <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Pick a theme — all are tuned to stay legible.</div>
-    <div class="theme-swatches">`;
-  THEME_PRESETS.forEach(p => {
-    const active = config.theme ? (config.theme.bg === p.bg && config.theme.accent === p.accent) : (p.name === 'Ocean');
-    html += `<button class="swatch ${active ? 'active' : ''}" onclick="setThemePreset('${p.name}')" style="background:${p.bg}">
-      <span class="swatch-dot" style="background:${p.accent}"></span>
-      <span class="swatch-name">${p.name}</span></button>`;
-  });
-  html += `</div>
-    <div class="row" style="border-top:0.5px solid var(--gray5);margin-top:10px;padding-top:12px;">
-      <div class="row-label">Accent color<small>buttons &amp; highlights</small></div>
-      <input type="color" value="${curTheme.accent}" onchange="setAccent(this.value)" class="accent-input">
-    </div></div>`;
-
   // Food types
   html += `<div class="section-header">Food Types</div><div class="card">`;
   config.foods.forEach((f, i) => {
@@ -1070,6 +1070,25 @@ async function renderConfig() {
   });
   html += `<button class="add-btn" onclick="showAddMed('systemic')">＋ Add Systemic Medication</button>
     <div style="font-size:13px;color:var(--text2);margin-top:4px;">Taken orally or injected — tracked once per day, not per body part</div></div>`;
+
+  // Appearance / theme (near the bottom)
+  const curTheme = config.theme || THEME_PRESETS[0];
+  html += `<div class="section-header">Appearance</div><div class="card">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Pick a theme — all are tuned to stay legible.</div>
+    <div class="theme-swatches">`;
+  THEME_PRESETS.forEach(p => {
+    const active = config.theme ? (config.theme.bg === p.bg && config.theme.accent === p.accent) : (p.name === 'Ocean');
+    const label = bgWantsDarkText(p.bg) ? '#1c1c1e' : '#fff';   // label colour matches the swatch bg
+    const shadow = bgWantsDarkText(p.bg) ? 'none' : '0 1px 2px rgba(0,0,0,0.35)';
+    html += `<button class="swatch ${active ? 'active' : ''}" onclick="setThemePreset('${p.name}')" style="background:${p.bg}">
+      <span class="swatch-dot" style="background:${p.accent}"></span>
+      <span class="swatch-name" style="color:${label};text-shadow:${shadow}">${p.name}</span></button>`;
+  });
+  html += `</div>
+    <div class="row" style="border-top:0.5px solid var(--gray5);margin-top:10px;padding-top:12px;">
+      <div class="row-label">Accent color<small>buttons &amp; highlights</small></div>
+      <input type="color" value="${curTheme.accent}" onchange="setAccent(this.value)" class="accent-input">
+    </div></div>`;
 
   // Backup & Restore section
   html += `<div class="section-header">Backup &amp; Restore</div><div class="card">
