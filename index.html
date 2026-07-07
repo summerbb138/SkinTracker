@@ -137,6 +137,14 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .corr-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:0.5px solid var(--gray5); font-size:14px; }
 .corr-val { font-weight:600; }
 
+/* Theme swatches */
+.theme-swatches { display:flex; flex-wrap:wrap; gap:8px; }
+.swatch { flex:1 1 28%; min-width:88px; height:60px; border-radius:12px; border:2px solid transparent; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:0; position:relative; }
+.swatch.active { border-color:var(--text); box-shadow:0 0 0 2px #fff inset; }
+.swatch-dot { width:18px; height:18px; border-radius:50%; box-shadow:0 0 0 2px rgba(255,255,255,0.6); }
+.swatch-name { color:#fff; font-size:13px; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.35); }
+.accent-input { width:48px; height:36px; padding:0; border:1px solid var(--gray4); border-radius:8px; background:none; cursor:pointer; }
+
 /* Config */
 .config-item { display:flex; align-items:center; padding:10px 0; gap:10px; }
 .config-item + .config-item { border-top:0.5px solid var(--gray5); }
@@ -213,7 +221,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.1';
+const APP_VERSION = '3.2';
 let db;
 
 function openDB() {
@@ -300,6 +308,61 @@ const DEFAULT_MEDICATIONS = [
 ];
 
 const GROUP_ICONS = { 'Hand & Arm':'👋', 'Armpit & Torso':'🧍', 'Belly & Back':'🫃', 'Leg & Foot':'🦵' };
+
+// ========== THEME ==========
+// Each preset holds the background + accent only; white cards, white on-bg text,
+// white-filled buttons and solid status colors stay fixed (the v3.1 structure).
+// All are tuned to meet or beat v3.1's contrast and avoid the status hues.
+const THEME_PRESETS = [
+  { name:'Ocean',  bg:'#4a9bff', accent:'#007aff' },
+  { name:'Indigo', bg:'#6a74e6', accent:'#3a44c4' },
+  { name:'Violet', bg:'#8a7cff', accent:'#5b32d6' },
+  { name:'Plum',   bg:'#a35fce', accent:'#7a2fb0' },
+  { name:'Slate',  bg:'#6b7a92', accent:'#334e78' }
+];
+const ACCENT_MIN_CONTRAST = 4.0; // accent-on-white floor (v3.1 benchmark)
+
+function _lin(c){ return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+function _lum(hex){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16)/255, g = parseInt(h.substr(2,2),16)/255, b = parseInt(h.substr(4,2),16)/255;
+  return 0.2126*_lin(r) + 0.7152*_lin(g) + 0.0722*_lin(b);
+}
+function contrastRatio(a, b){
+  const L1 = _lum(a), L2 = _lum(b);
+  return (Math.max(L1,L2) + 0.05) / (Math.min(L1,L2) + 0.05);
+}
+
+// Apply the saved theme by overriding just --bg and the accent (--blue).
+function applyTheme(){
+  const t = config.theme;
+  if (!t) return; // no theme saved yet -> keep the CSS default (Ocean / v3.1)
+  document.documentElement.style.setProperty('--bg', t.bg);
+  document.documentElement.style.setProperty('--blue', t.accent);
+}
+
+async function setThemePreset(name){
+  const p = THEME_PRESETS.find(x => x.name === name);
+  if (!p) return;
+  config.theme = { name:p.name, bg:p.bg, accent:p.accent };
+  await saveConfig();
+  applyTheme();
+  renderConfig();
+}
+
+async function setAccent(hex){
+  const c = contrastRatio(hex, '#ffffff');
+  if (c < ACCENT_MIN_CONTRAST){
+    alert(`That accent is too light to read on white buttons (contrast ${c.toFixed(1)}:1, needs at least ${ACCENT_MIN_CONTRAST}). Pick a deeper shade.`);
+    renderConfig();
+    return;
+  }
+  const base = config.theme || THEME_PRESETS[0];
+  config.theme = { name:'Custom', bg:base.bg, accent:hex };
+  await saveConfig();
+  applyTheme();
+  renderConfig();
+}
 
 // ========== STATE ==========
 let config = { foods:[], bodyParts:[], medications:[] };
@@ -952,6 +1015,23 @@ async function renderInsights() {
 async function renderConfig() {
   let html = `<h1>Configuration</h1>`;
 
+  // Appearance / theme
+  const curTheme = config.theme || THEME_PRESETS[0];
+  html += `<div class="section-header">Appearance</div><div class="card">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Pick a theme — all are tuned to stay legible.</div>
+    <div class="theme-swatches">`;
+  THEME_PRESETS.forEach(p => {
+    const active = config.theme ? (config.theme.bg === p.bg && config.theme.accent === p.accent) : (p.name === 'Ocean');
+    html += `<button class="swatch ${active ? 'active' : ''}" onclick="setThemePreset('${p.name}')" style="background:${p.bg}">
+      <span class="swatch-dot" style="background:${p.accent}"></span>
+      <span class="swatch-name">${p.name}</span></button>`;
+  });
+  html += `</div>
+    <div class="row" style="border-top:0.5px solid var(--gray5);margin-top:10px;padding-top:12px;">
+      <div class="row-label">Accent color<small>buttons &amp; highlights</small></div>
+      <input type="color" value="${curTheme.accent}" onchange="setAccent(this.value)" class="accent-input">
+    </div></div>`;
+
   // Food types
   html += `<div class="section-header">Food Types</div><div class="card">`;
   config.foods.forEach((f, i) => {
@@ -1208,6 +1288,7 @@ async function applyBackup(text) {
   }
   closeModal();
   alert(`Restored ${count} entries and settings.`);
+  applyTheme();
   await loadEntry(currentDate);
   renderConfig();
 }
@@ -1241,6 +1322,7 @@ document.getElementById('modal').addEventListener('click', e => {
 async function init() {
   await openDB();
   await loadConfig();
+  applyTheme();
   renderToday();
 }
 
