@@ -228,7 +228,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.4';
+const APP_VERSION = '3.5';
 let db;
 
 function openDB() {
@@ -534,15 +534,15 @@ async function renderToday() {
     <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
   </div>`;
 
-  // Prominent "start from yesterday" prompt — only while today's entry is still blank
+  // Prominent "start from your last entry" prompt — only while this day is still blank.
+  // Uses the most recent PRIOR day that has an entry (not strictly yesterday), so it still
+  // helps after a skipped day.
   if (isEntryEmpty(entry)) {
-    const yd = parseDate(currentDate);
-    yd.setDate(yd.getDate() - 1);
-    const yEntry = await dbGet('entries', dateKey(yd));
-    if (yEntry) {
-      html += `<button class="copy-yesterday-cta" onclick="copyYesterday()">
+    const prev = await getPrevEntry(currentDate);
+    if (prev) {
+      html += `<button class="copy-yesterday-cta" onclick="copyPrevDay()">
         <span class="cta-emoji">📋</span>
-        <span>Copy from ${formatDateLong(dateKey(yd))}
+        <span>Copy from ${formatDateLong(prev.dateString)}
           <small>Prefill food, meds &amp; all skin conditions, then edit what changed</small>
         </span>
       </button>`;
@@ -800,18 +800,40 @@ async function copyLR() {
   renderToday();
 }
 
+// Most recent day BEFORE dateStr that has a saved entry (null if none).
+async function getPrevEntry(dateStr) {
+  const all = await dbGetAll('entries');
+  const prior = all.filter(e => e.dateString < dateStr);
+  prior.sort((a, b) => b.dateString.localeCompare(a.dateString));
+  return prior[0] || null;
+}
+
+function applyCopiedEntry(src) {
+  currentEntry.foodConsumed = { ...src.foodConsumed };
+  currentEntry.systemicMeds = { ...src.systemicMeds };
+  currentEntry.fullBodyMoisturizer = src.fullBodyMoisturizer;
+  currentEntry.bodyPartEntries = src.bodyPartEntries.map(bp => ({
+    ...bp, topicalMeds: { ...bp.topicalMeds }
+  }));
+  currentEntry.dateString = currentDate;
+}
+
+// Used by the prominent top prompt: copies the most recent prior day (handles skipped days).
+async function copyPrevDay() {
+  const prev = await getPrevEntry(currentDate);
+  if (!prev) { alert('No earlier entry to copy from.'); return; }
+  applyCopiedEntry(prev);
+  await saveEntry();
+  renderToday();
+}
+
+// Used by the "Yesterday" quick-action pill: strictly the immediately-preceding calendar day.
 async function copyYesterday() {
   const yd = parseDate(currentDate);
   yd.setDate(yd.getDate() - 1);
   const yEntry = await dbGet('entries', dateKey(yd));
   if (!yEntry) { alert('No entry found for yesterday.'); return; }
-  currentEntry.foodConsumed = { ...yEntry.foodConsumed };
-  currentEntry.systemicMeds = { ...yEntry.systemicMeds };
-  currentEntry.fullBodyMoisturizer = yEntry.fullBodyMoisturizer;
-  currentEntry.bodyPartEntries = yEntry.bodyPartEntries.map(bp => ({
-    ...bp, topicalMeds: { ...bp.topicalMeds }
-  }));
-  currentEntry.dateString = currentDate;
+  applyCopiedEntry(yEntry);
   await saveEntry();
   renderToday();
 }
