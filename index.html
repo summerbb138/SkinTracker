@@ -69,6 +69,12 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .quick-btn { padding:8px 14px; border-radius:20px; border:none; background:#fff; color:var(--blue); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
 .quick-btn:active { background:var(--blue); color:#fff; }
 
+/* Copy-yesterday call-to-action (shown when the day is still blank) */
+.copy-yesterday-cta { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 16px; border-radius:14px; border:none; background:var(--blue); color:#fff; font-size:16px; font-weight:600; cursor:pointer; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); }
+.copy-yesterday-cta:active { opacity:0.85; }
+.copy-yesterday-cta .cta-emoji { font-size:22px; line-height:1; flex-shrink:0; }
+.copy-yesterday-cta small { display:block; font-weight:400; font-size:12px; opacity:0.9; margin-top:3px; }
+
 /* Banner */
 .banner { padding:14px 16px; border-radius:12px; font-size:16px; font-weight:700; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
 .banner-green { background:var(--green); color:#fff; }
@@ -222,7 +228,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.3';
+const APP_VERSION = '3.4';
 let db;
 
 function openDB() {
@@ -462,6 +468,17 @@ async function saveEntry() {
   if (currentEntry) await dbPut('entries', currentEntry);
 }
 
+// True when nothing has been entered for this day yet (all values at defaults).
+function isEntryEmpty(entry) {
+  if (Object.values(entry.foodConsumed).some(v => v)) return false;
+  if (Object.values(entry.systemicMeds).some(v => v > 0)) return false;
+  if (entry.fullBodyMoisturizer > 0) return false;
+  return entry.bodyPartEntries.every(bp =>
+    bp.itchiness === 'No' && bp.moisturizerCount === 0 &&
+    Object.values(bp.topicalMeds).every(v => v === 0)
+  );
+}
+
 // ========== TAB NAVIGATION ==========
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -516,6 +533,21 @@ async function renderToday() {
     ${currentDate !== dateKey(new Date()) ? '<button class="today-chip" onclick="gotoToday()">Today</button>' : ''}
     <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
   </div>`;
+
+  // Prominent "start from yesterday" prompt — only while today's entry is still blank
+  if (isEntryEmpty(entry)) {
+    const yd = parseDate(currentDate);
+    yd.setDate(yd.getDate() - 1);
+    const yEntry = await dbGet('entries', dateKey(yd));
+    if (yEntry) {
+      html += `<button class="copy-yesterday-cta" onclick="copyYesterday()">
+        <span class="cta-emoji">📋</span>
+        <span>Copy from ${formatDateLong(dateKey(yd))}
+          <small>Prefill food, meds &amp; all skin conditions, then edit what changed</small>
+        </span>
+      </button>`;
+    }
+  }
 
   // Food section
   html += `<div class="section-header">Food Consumed Today</div><div class="card">`;
