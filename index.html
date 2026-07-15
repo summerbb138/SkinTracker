@@ -69,12 +69,13 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .quick-btn { padding:8px 14px; border-radius:20px; border:none; background:#fff; color:var(--blue); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
 .quick-btn:active { background:var(--blue); color:#fff; }
 
-/* Prefill call-to-action (shown when the day is still blank) — pick a date, then Prefill */
-.prefill-cta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; padding:12px 14px; border-radius:14px; background:var(--blue); color:#fff; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); }
-.prefill-cta .cta-emoji { font-size:22px; line-height:1; flex-shrink:0; }
-.prefill-cta .prefill-label { font-size:16px; font-weight:600; }
-.prefill-cta .prefill-date { flex:1; min-width:120px; height:40px; border:none; border-radius:9px; padding:0 10px; font-size:15px; background:#fff; color:#111; font-family:inherit; }
-.prefill-cta .prefill-btn { height:40px; padding:0 18px; border:none; border-radius:9px; background:#fff; color:var(--blue); font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
+/* Prefill call-to-action (shown when the day is still blank) — pick a date, then Prefill.
+   Single non-wrapping row: label + button stay fixed, the date input flexes/shrinks. */
+.prefill-cta { display:flex; align-items:center; gap:8px; flex-wrap:nowrap; width:100%; padding:10px 12px; border-radius:14px; background:var(--blue); color:#fff; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); }
+.prefill-cta .cta-emoji { font-size:20px; line-height:1; flex-shrink:0; }
+.prefill-cta .prefill-label { font-size:15px; font-weight:600; flex-shrink:0; white-space:nowrap; }
+.prefill-cta .prefill-date { flex:1 1 auto; min-width:0; height:38px; border:none; border-radius:9px; padding:0 8px; font-size:14px; background:#fff; color:#111; font-family:inherit; }
+.prefill-cta .prefill-btn { flex-shrink:0; height:38px; padding:0 14px; border:none; border-radius:9px; background:#fff; color:var(--blue); font-size:14px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
 .prefill-cta .prefill-btn:active { opacity:0.85; }
 
 /* Banner */
@@ -230,7 +231,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.7';
+const APP_VERSION = '3.8';
 let db;
 
 function openDB() {
