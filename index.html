@@ -228,7 +228,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.5';
+const APP_VERSION = '3.6';
 let db;
 
 function openDB() {
@@ -542,9 +542,7 @@ async function renderToday() {
     if (prev) {
       html += `<button class="copy-yesterday-cta" onclick="copyPrevDay()">
         <span class="cta-emoji">📋</span>
-        <span>Copy from ${formatDateLong(prev.dateString)}
-          <small>Prefill food, meds &amp; all skin conditions, then edit what changed</small>
-        </span>
+        <span>Prefill from ${formatDateLong(prev.dateString)}</span>
       </button>`;
     }
   }
