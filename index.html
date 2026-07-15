@@ -69,11 +69,13 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 .quick-btn { padding:8px 14px; border-radius:20px; border:none; background:#fff; color:var(--blue); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
 .quick-btn:active { background:var(--blue); color:#fff; }
 
-/* Copy-yesterday call-to-action (shown when the day is still blank) */
-.copy-yesterday-cta { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 16px; border-radius:14px; border:none; background:var(--blue); color:#fff; font-size:16px; font-weight:600; cursor:pointer; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); }
-.copy-yesterday-cta:active { opacity:0.85; }
-.copy-yesterday-cta .cta-emoji { font-size:22px; line-height:1; flex-shrink:0; }
-.copy-yesterday-cta small { display:block; font-weight:400; font-size:12px; opacity:0.9; margin-top:3px; }
+/* Prefill call-to-action (shown when the day is still blank) — pick a date, then Prefill */
+.prefill-cta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; padding:12px 14px; border-radius:14px; background:var(--blue); color:#fff; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); }
+.prefill-cta .cta-emoji { font-size:22px; line-height:1; flex-shrink:0; }
+.prefill-cta .prefill-label { font-size:16px; font-weight:600; }
+.prefill-cta .prefill-date { flex:1; min-width:120px; height:40px; border:none; border-radius:9px; padding:0 10px; font-size:15px; background:#fff; color:#111; font-family:inherit; }
+.prefill-cta .prefill-btn { height:40px; padding:0 18px; border:none; border-radius:9px; background:#fff; color:var(--blue); font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
+.prefill-cta .prefill-btn:active { opacity:0.85; }
 
 /* Banner */
 .banner { padding:14px 16px; border-radius:12px; font-size:16px; font-weight:700; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
@@ -228,7 +230,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.6';
+const APP_VERSION = '3.7';
 let db;
 
 function openDB() {
@@ -534,16 +536,19 @@ async function renderToday() {
     <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
   </div>`;
 
-  // Prominent "start from your last entry" prompt — only while this day is still blank.
-  // Uses the most recent PRIOR day that has an entry (not strictly yesterday), so it still
-  // helps after a skipped day.
+  // Prominent prefill prompt — only while this day is still blank. Lets the user pick any
+  // earlier date to copy from; defaults to the most recent PRIOR day that has an entry.
   if (isEntryEmpty(entry)) {
     const prev = await getPrevEntry(currentDate);
     if (prev) {
-      html += `<button class="copy-yesterday-cta" onclick="copyPrevDay()">
+      const yd = parseDate(currentDate); yd.setDate(yd.getDate() - 1);
+      const maxDate = dateKey(yd);
+      html += `<div class="prefill-cta">
         <span class="cta-emoji">📋</span>
-        <span>Prefill from ${formatDateLong(prev.dateString)}</span>
-      </button>`;
+        <span class="prefill-label">Prefill from</span>
+        <input type="date" id="prefill-date" class="prefill-date" value="${prev.dateString}" max="${maxDate}">
+        <button class="prefill-btn" onclick="prefillFromPicked()">Prefill</button>
+      </div>`;
     }
   }
 
@@ -582,7 +587,6 @@ async function renderToday() {
   html += `<div class="quick-actions">
     <button class="quick-btn" onclick="allClear()">✅ All Clear</button>
     <button class="quick-btn" onclick="copyLR()">→ Copy L→R</button>
-    <button class="quick-btn" onclick="copyYesterday()">📋 Yesterday</button>
   </div>`;
 
   // Banner
@@ -816,22 +820,14 @@ function applyCopiedEntry(src) {
   currentEntry.dateString = currentDate;
 }
 
-// Used by the prominent top prompt: copies the most recent prior day (handles skipped days).
-async function copyPrevDay() {
-  const prev = await getPrevEntry(currentDate);
-  if (!prev) { alert('No earlier entry to copy from.'); return; }
-  applyCopiedEntry(prev);
-  await saveEntry();
-  renderToday();
-}
-
-// Used by the "Yesterday" quick-action pill: strictly the immediately-preceding calendar day.
-async function copyYesterday() {
-  const yd = parseDate(currentDate);
-  yd.setDate(yd.getDate() - 1);
-  const yEntry = await dbGet('entries', dateKey(yd));
-  if (!yEntry) { alert('No entry found for yesterday.'); return; }
-  applyCopiedEntry(yEntry);
+// Used by the prefill prompt's date picker: copies whichever earlier date the user chose.
+async function prefillFromPicked() {
+  const picked = document.getElementById('prefill-date').value;
+  if (!picked) return;
+  if (picked >= currentDate) { alert('Pick a date before ' + formatDateLong(currentDate) + '.'); return; }
+  const src = await dbGet('entries', picked);
+  if (!src) { alert('No entry saved for ' + formatDateLong(picked) + '. Pick a day you logged.'); return; }
+  applyCopiedEntry(src);
   await saveEntry();
   renderToday();
 }
