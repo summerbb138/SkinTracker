@@ -231,7 +231,7 @@ h2 { font-size:20px; font-weight:600; margin:16px 0 8px; }
 // ========== DATABASE ==========
 const DB_NAME = 'SkinTrackerDB';
 const DB_VERSION = 1;
-const APP_VERSION = '3.8';
+const APP_VERSION = '3.9';
 let db;
 
 function openDB() {
@@ -537,9 +537,11 @@ async function renderToday() {
     <input type="date" id="date-picker" value="${currentDate}" onchange="pickDate(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
   </div>`;
 
-  // Prominent prefill prompt — only while this day is still blank. Lets the user pick any
-  // earlier date to copy from; defaults to the most recent PRIOR day that has an entry.
-  if (isEntryEmpty(entry)) {
+  // Prefill prompt — always available on any day (whether blank or already filled), as long
+  // as an earlier day exists to copy from. Lets the user pick any earlier date; defaults to
+  // the most recent PRIOR day that has an entry. Prefilling a day that already has data asks
+  // for confirmation first (see prefillFromPicked).
+  {
     const prev = await getPrevEntry(currentDate);
     if (prev) {
       const yd = parseDate(currentDate); yd.setDate(yd.getDate() - 1);
@@ -828,6 +830,9 @@ async function prefillFromPicked() {
   if (picked >= currentDate) { alert('Pick a date before ' + formatDateLong(currentDate) + '.'); return; }
   const src = await dbGet('entries', picked);
   if (!src) { alert('No entry saved for ' + formatDateLong(picked) + '. Pick a day you logged.'); return; }
+  // Guard against wiping a day that already has data.
+  if (!isEntryEmpty(currentEntry) &&
+      !confirm('Overwrite ' + formatDateLong(currentDate) + ' with the entry from ' + formatDateLong(picked) + '?')) return;
   applyCopiedEntry(src);
   await saveEntry();
   renderToday();
